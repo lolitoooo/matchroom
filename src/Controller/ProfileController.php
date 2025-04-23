@@ -17,7 +17,7 @@ use Symfony\Component\Security\Core\Validator\Constraints\UserPassword;
 class ProfileController extends AbstractController
 {
     #[Route('/profile', name: 'app_profile')]
-    public function index(HotelRepository $hotelRepository): Response
+    public function index(EntityManagerInterface $entityManager, HotelRepository $hotelRepository): Response
     {
         // Vérifier si user connecté
         $user = $this->getUser();
@@ -27,13 +27,22 @@ class ProfileController extends AbstractController
 
         // Si user est hotelier, récupérer son hôtel
         $hotel = null;
+        $roomTypes = [];
+        
         if (in_array('ROLE_HOTEL', $user->getRoles())) {
             $hotel = $hotelRepository->findOneBy(['user' => $user]);
+            
+            if ($hotel) {
+                // Récupérer directement les types de chambres depuis la base de données
+                $roomTypeRepository = $entityManager->getRepository(\App\Entity\RoomType::class);
+                $roomTypes = $roomTypeRepository->findBy(['hotel' => $hotel]);
+            }
         }
 
         return $this->render('profile/index.html.twig', [
             'user' => $user,
             'hotel' => $hotel,
+            'roomTypes' => $roomTypes,
         ]);
     }
 

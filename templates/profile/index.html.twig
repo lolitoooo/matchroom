@@ -2,6 +2,19 @@
 
 {% block title %}Profil - MatchRoom{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        /* Styles pour la page de profil */
+        .tab-content.active {
+            display: block !important;
+        }
+        .tab-content {
+            display: none;
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
 <div class="min-h-screen flex flex-col bg-primary-50">
     <!-- Navbar -->
@@ -22,19 +35,24 @@
         <div class="max-w-5xl mx-auto">
             <!-- Onglets -->
             <div class="mb-8 border-b border-primary-200">
-                <ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
-                    <li class="mr-2">
-                        <a href="#tab-infos" class="inline-block p-4 border-b-2 border-primary-500 text-primary-600 rounded-t-lg active" aria-current="page">Informations personnelles</a>
-                    </li>
-                    {% if 'ROLE_HOTEL' in user.roles and hotel %}
-                    <li class="mr-2">
-                        <a href="#tab-hotel" class="inline-block p-4 border-b-2 border-transparent hover:border-primary-300 hover:text-primary-600 rounded-t-lg">Informations de l'hôtel</a>
-                    </li>
-                    {% endif %}
-                    <li class="mr-2">
-                        <a href="#tab-password" class="inline-block p-4 border-b-2 border-transparent hover:border-primary-300 hover:text-primary-600 rounded-t-lg">Changer le mot de passe</a>
-                    </li>
-                </ul>
+                <div class="border-b border-primary-200">
+                    <nav class="-mb-px flex space-x-8">
+                        <a href="#tab-infos" class="border-primary-500 text-primary-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                            Informations personnelles
+                        </a>
+                        {% if 'ROLE_HOTEL' in user.roles and hotel %}
+                        <a href="#tab-hotel" class="border-transparent text-primary-500 hover:text-primary-700 hover:border-primary-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                            Informations de l'hôtel
+                        </a>
+                        <a href="{{ path('app_hotel_rooms') }}" class="border-transparent text-primary-500 hover:text-primary-700 hover:border-primary-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                            Gestion des chambres
+                        </a>
+                        {% endif %}
+                        <a href="#tab-password" class="border-transparent text-primary-500 hover:text-primary-700 hover:border-primary-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                            Changer le mot de passe
+                        </a>
+                    </nav>
+                </div>
             </div>
 
             <!-- Contenu des onglets -->
@@ -129,6 +147,101 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Onglet Gestion des chambres -->
+                <div id="tab-rooms" class="tab-content hidden" style="display: none;">
+                    <div class="p-8">
+                        <div class="flex justify-between items-center mb-8">
+                            <h2 class="text-2xl font-serif font-semibold text-primary-700">Gestion des chambres</h2>
+                            <a href="{{ path('app_hotel_room_new') }}" class="bg-primary-500 hover:bg-primary-600 text-white px-5 py-2.5 rounded-md text-sm font-medium transition duration-150 ease-in-out flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                                Ajouter une chambre
+                            </a>
+                        </div>
+                        
+                        {% if roomTypes|length > 0 %}
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-primary-200">
+                                    <thead class="bg-primary-50">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-500 uppercase tracking-wider">Photo</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-500 uppercase tracking-wider">Titre</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-500 uppercase tracking-wider">Capacité</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-500 uppercase tracking-wider">Prix/nuit</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-500 uppercase tracking-wider">Statut</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-primary-500 uppercase tracking-wider">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-primary-200">
+                                        {% for roomType in roomTypes %}
+                                            <tr>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    {% if roomType.roomPhotos|length > 0 %}
+                                                        <img src="{{ asset('uploads/room_photos/' ~ roomType.roomPhotos.first.url) }}" alt="{{ roomType.roomPhotos.first.alt }}" class="h-16 w-24 object-cover rounded">
+                                                    {% else %}
+                                                        <div class="h-16 w-24 bg-primary-100 flex items-center justify-center rounded">
+                                                            <span class="text-primary-400 text-xs">Pas de photo</span>
+                                                        </div>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm font-medium text-primary-900">{{ roomType.name }}</div>
+                                                    <div class="text-xs text-primary-500">{{ roomType.description|length > 50 ? roomType.description|slice(0, 50) ~ '...' : roomType.description }}</div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm text-primary-900">{{ roomType.capacity }} personne{{ roomType.capacity > 1 ? 's' : '' }}</div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm text-primary-900">{{ roomType.basePrice|number_format(2, ',', ' ') }} €</div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    {% if roomType.available %}
+                                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                            Disponible
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                                            Non disponible
+                                                        </span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                    <a href="{{ path('app_hotel_room_edit', {'id': roomType.id}) }}" class="text-primary-600 hover:text-primary-900 mr-3">
+                                                        <i class="fas fa-edit"></i> Modifier
+                                                    </a>
+                                                    <form method="post" action="{{ path('app_hotel_room_delete', {'id': roomType.id}) }}" class="inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette chambre ?');">
+                                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ roomType.id) }}">
+                                                        <button type="submit" class="text-red-600 hover:text-red-900">
+                                                            <i class="fas fa-trash"></i> Supprimer
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-12">
+                                <svg class="mx-auto h-12 w-12 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <h3 class="mt-2 text-sm font-medium text-primary-900">Aucune chambre</h3>
+                                <p class="mt-1 text-sm text-primary-500">Commencez par créer une nouvelle chambre pour votre hôtel.</p>
+                                <div class="mt-6">
+                                    <a href="{{ path('app_hotel_room_new') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                        <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                        </svg>
+                                        Ajouter une chambre
+                                    </a>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
                 {% endif %}
                 
                 <!-- Onglet Changer le mot de passe -->
@@ -172,36 +285,64 @@
         const tabs = document.querySelectorAll('[href^="#tab-"]');
         const tabContents = document.querySelectorAll('.tab-content');
         
+        // Initialiser tous les contenus d'onglet comme cachés
+        tabContents.forEach(content => {
+            content.style.display = 'none';
+            content.classList.add('hidden');
+            content.classList.remove('active');
+        });
+        
+        function activateTab(tabElement) {
+            // Désactiver tous les onglets
+            tabs.forEach(t => {
+                t.classList.remove('border-primary-500', 'text-primary-600');
+                t.classList.add('border-transparent', 'hover:border-primary-300', 'hover:text-primary-600');
+            });
+            
+            // Activer l'onglet cliqué
+            tabElement.classList.add('border-primary-500', 'text-primary-600');
+            tabElement.classList.remove('border-transparent', 'hover:border-primary-300', 'hover:text-primary-600');
+            
+            // Cacher tous les contenus d'onglet
+            tabContents.forEach(content => {
+                content.style.display = 'none';
+                content.classList.add('hidden');
+                content.classList.remove('active');
+            });
+            
+            // Afficher le contenu de l'onglet cliqué
+            const target = tabElement.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(target);
+            
+            if (targetElement) {
+                targetElement.style.display = 'block';
+                targetElement.classList.remove('hidden');
+                targetElement.classList.add('active');
+                console.log('Affichage de l\'onglet:', target);
+            } else {
+                console.error('Élément cible non trouvé:', target);
+            }
+        }
+        
         tabs.forEach(tab => {
             tab.addEventListener('click', function(e) {
                 e.preventDefault();
-                
-                // Désactiver tous les onglets
-                tabs.forEach(t => {
-                    t.classList.remove('border-primary-500', 'text-primary-600');
-                    t.classList.add('border-transparent', 'hover:border-primary-300', 'hover:text-primary-600');
-                });
-                
-                // Activer l'onglet cliqué
-                this.classList.add('border-primary-500', 'text-primary-600');
-                this.classList.remove('border-transparent', 'hover:border-primary-300', 'hover:text-primary-600');
-                
-                // Cacher tous les contenus d'onglet
-                tabContents.forEach(content => {
-                    content.classList.add('hidden');
-                    content.classList.remove('active');
-                });
-                
-                // Afficher le contenu de l'onglet cliqué
-                const target = this.getAttribute('href').substring(1);
-                document.getElementById(target).classList.remove('hidden');
-                document.getElementById(target).classList.add('active');
+                activateTab(this);
             });
         });
         
         // Activer le premier onglet par défaut
         if (tabs.length > 0) {
-            tabs[0].click();
+            activateTab(tabs[0]);
+        }
+        
+        // Vérifier si un hash est présent dans l'URL
+        if (window.location.hash && window.location.hash.startsWith('#tab-')) {
+            const tabId = window.location.hash;
+            const tabToActivate = document.querySelector(`[href="${tabId}"]`);
+            if (tabToActivate) {
+                activateTab(tabToActivate);
+            }
         }
     });
 </script>

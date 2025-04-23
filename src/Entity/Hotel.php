@@ -155,6 +155,10 @@ class Hotel
      */
     public function getRoomTypes(): Collection
     {
+        // Forcer l'initialisation de la collection si elle est en mode lazy loading
+        if ($this->roomTypes instanceof \Doctrine\ORM\PersistentCollection && !$this->roomTypes->isInitialized()) {
+            $this->roomTypes->initialize();
+        }
         return $this->roomTypes;
     }
 

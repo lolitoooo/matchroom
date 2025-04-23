@@ -28,6 +28,12 @@ class RoomType
 
     #[ORM\Column]
     private ?int $capacity = null;
+    
+    #[ORM\Column]
+    private ?int $bedCount = 1;
+    
+    #[ORM\Column]
+    private ?int $roomCount = 1;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     private ?string $basePrice = null;
@@ -40,6 +46,9 @@ class RoomType
 
     #[ORM\OneToMany(mappedBy: 'roomType', targetEntity: Negotiation::class)]
     private Collection $negotiations;
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $amenities = [];
 
     public function __construct()
     {
@@ -178,6 +187,42 @@ class RoomType
                 $negotiation->setRoomType(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getAmenities(): ?array
+    {
+        return $this->amenities;
+    }
+
+    public function setAmenities(?array $amenities): static
+    {
+        $this->amenities = $amenities;
+
+        return $this;
+    }
+    
+    public function getBedCount(): ?int
+    {
+        return $this->bedCount;
+    }
+
+    public function setBedCount(int $bedCount): static
+    {
+        $this->bedCount = $bedCount;
+
+        return $this;
+    }
+
+    public function getRoomCount(): ?int
+    {
+        return $this->roomCount;
+    }
+
+    public function setRoomCount(int $roomCount): static
+    {
+        $this->roomCount = $roomCount;
 
         return $this;
     }

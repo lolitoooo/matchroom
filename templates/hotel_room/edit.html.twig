@@ -1,0 +1,174 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier une chambre - MatchRoom{% endblock %}
+
+{% block body %}
+<div class="min-h-screen flex flex-col">
+    <!-- Navbar -->
+    {% include 'partials/_navbar.html.twig' %}
+
+    <!-- Contenu principal -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-primary-500 text-white p-6">
+                <h1 class="text-2xl font-serif font-bold">Modifier la chambre</h1>
+            </div>
+            
+            <div class="p-6">
+                {% for message in app.flashes('success') %}
+                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+                        <span class="block sm:inline">{{ message }}</span>
+                    </div>
+                {% endfor %}
+                
+                {% for message in app.flashes('error') %}
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                        <span class="block sm:inline">{{ message }}</span>
+                    </div>
+                {% endfor %}
+                
+                {{ form_start(form, {'attr': {'id': 'edit-form', 'method': 'post'}}) }}
+                    <div class="space-y-6">
+                        <div>
+                            <h2 class="text-xl font-semibold text-primary-700 mb-4">Informations de base</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="md:col-span-2">
+                                    {{ form_label(form.name, null, {'label_attr': {'class': 'block text-sm font-medium text-primary-700 mb-1'}}) }}
+                                    {{ form_widget(form.name) }}
+                                    {{ form_errors(form.name) }}
+                                </div>
+                                
+                                <div>
+                                    {{ form_label(form.capacity, null, {'label_attr': {'class': 'block text-sm font-medium text-primary-700 mb-1'}}) }}
+                                    {{ form_widget(form.capacity) }}
+                                    {{ form_errors(form.capacity) }}
+                                </div>
+                                
+                                <div>
+                                    {{ form_label(form.roomCount, null, {'label_attr': {'class': 'block text-sm font-medium text-primary-700 mb-1'}}) }}
+                                    {{ form_widget(form.roomCount) }}
+                                    {{ form_errors(form.roomCount) }}
+                                </div>
+                                
+                                <div>
+                                    {{ form_label(form.bedCount, null, {'label_attr': {'class': 'block text-sm font-medium text-primary-700 mb-1'}}) }}
+                                    {{ form_widget(form.bedCount) }}
+                                    {{ form_errors(form.bedCount) }}
+                                </div>
+                                
+                                <div>
+                                    {{ form_label(form.basePrice, null, {'label_attr': {'class': 'block text-sm font-medium text-primary-700 mb-1'}}) }}
+                                    {{ form_widget(form.basePrice) }}
+                                    {{ form_errors(form.basePrice) }}
+                                </div>
+                                
+                                <div class="md:col-span-2">
+                                    {{ form_label(form.description, null, {'label_attr': {'class': 'block text-sm font-medium text-primary-700 mb-1'}}) }}
+                                    {{ form_widget(form.description) }}
+                                    {{ form_errors(form.description) }}
+                                </div>
+                                
+                                <div class="md:col-span-2 flex items-center">
+                                    {{ form_widget(form.available) }}
+                                    {{ form_label(form.available) }}
+                                    {{ form_errors(form.available) }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-8 border-primary-100">
+                        
+                        <div>
+                            <h2 class="text-xl font-semibold text-primary-700 mb-4">Photos de la chambre</h2>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                {% if roomType.roomPhotos|length > 0 %}
+                                    {% for photo in roomType.roomPhotos %}
+                                        <div class="relative group">
+                                            <img src="{{ asset('uploads/room_photos/' ~ photo.url) }}" alt="{{ photo.alt }}" class="w-full h-40 object-cover rounded-md">
+                                            <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center rounded-md">
+                                                <form method="post" action="{{ path('app_hotel_room_photo_delete', {'id': photo.id}) }}">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete-photo' ~ photo.id) }}">
+                                                    <button type="submit" class="text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded-md text-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette photo ?')">
+                                                        Supprimer
+                                                    </button>
+                                                </form>
+                                            </div>
+                                            <div class="mt-1 text-xs text-primary-600">
+                                                {{ photo.alt ? photo.alt : 'Photo ' ~ loop.index }}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="md:col-span-3 text-center py-8 bg-primary-50 rounded-md">
+                                        <svg class="mx-auto h-12 w-12 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        <p class="mt-2 text-sm text-primary-600">Aucune photo pour cette chambre</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="bg-primary-50 p-4 rounded-md">
+                                <h3 class="text-md font-medium text-primary-700 mb-3">Ajouter des photos</h3>
+                                
+                                <div class="mb-4">
+                                    {{ form_label(form.photos, null, {'label_attr': {'class': 'block text-sm font-medium text-primary-700 mb-1'}}) }}
+                                    {{ form_widget(form.photos) }}
+                                    {{ form_help(form.photos) }}
+                                    {{ form_errors(form.photos) }}
+                                </div>
+                                
+                                <div class="flex justify-end">
+                                    <button type="submit" form="edit-form" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+                                        Enregistrer les modifications
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-8 border-primary-100">
+                        
+                        <div>
+                            <h2 class="text-xl font-semibold text-primary-700 mb-4">Équipements et services</h2>
+                            <p class="text-sm text-primary-500 mb-4">Sélectionnez les équipements et services disponibles dans cette chambre.</p>
+                            
+                            <div class="space-y-6">
+                                {% if amenitiesForm is not null %}
+                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        {% for category, items in amenities_categories %}
+                                            {% set categoryKey = 'amenities_' ~ category|replace({' ': '_', 'é': 'e', 'è': 'e', 'à': 'a', 'ê': 'e', 'î': 'i', 'ô': 'o', 'û': 'u', 'ç': 'c', "'": '_'})|lower %}
+                                            <div class="bg-primary-50 p-4 rounded-lg">
+                                                <h3 class="font-medium text-primary-700 text-lg mb-3">{{ category }}</h3>
+                                                <div class="space-y-2">
+                                                    {% for choice in amenitiesForm[categoryKey] %}
+                                                        <div class="flex items-start">
+                                                            {{ form_widget(choice) }}
+                                                            {{ form_label(choice, null, {'label_attr': {'class': 'ml-2 text-sm text-primary-600'}}) }}
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <p class="text-red-500">Impossible de charger les équipements.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-end space-x-4 mt-8">
+                            <a href="{{ path('app_hotel_rooms') }}" class="bg-white border border-primary-300 text-primary-700 hover:bg-primary-50 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+                                Annuler
+                            </a>
+                            <button type="submit" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+                                Enregistrer les modifications
+                            </button>
+                        </div>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

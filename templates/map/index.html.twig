@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
           crossorigin=""/>
+    <!-- Pas besoin de CSS spécifique pour le dessin à main levée -->
     <style>
         #map {
             height: 600px;
@@ -38,6 +39,81 @@
         .map-header {
             margin-bottom: 20px;
         }
+        .draw-instructions {
+            background-color: #f8f9fa;
+            border-left: 4px solid #6c63ff;
+            padding: 10px 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .hotels-in-zone {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f4f8;
+            border-radius: 8px;
+        }
+        .hotels-in-zone h3 {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #3A2E27;
+        }
+        .hotel-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .hotel-item {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+        }
+        .hotel-item:last-child {
+            border-bottom: none;
+        }
+        .hotel-item-content {
+            flex: 1;
+        }
+        .hotel-item-name {
+            font-weight: bold;
+            color: #3A2E27;
+        }
+        .hotel-item-address {
+            font-size: 0.85rem;
+            color: #666;
+        }
+        .map-button {
+            background-color: #fff;
+            border: 2px solid #6c63ff;
+            color: #6c63ff;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 10px;
+        }
+        .map-button:hover {
+            background-color: #6c63ff;
+            color: white;
+        }
+        .map-button.active {
+            background-color: #6c63ff;
+            color: white;
+        }
+        .map-button.clear {
+            border-color: #e53e3e;
+            color: #e53e3e;
+        }
+        .map-button.clear:hover {
+            background-color: #e53e3e;
+            color: white;
+        }
+        .map-controls {
+            display: flex;
+            margin-top: 15px;
+        }
     </style>
 {% endblock %}
 
@@ -59,6 +135,21 @@
             <div class="mt-4 text-sm text-gray-500">
                 <p>Cliquez sur un marqueur pour voir les détails de l'hôtel.</p>
             </div>
+            
+            <div class="draw-instructions">
+                <p><strong>Nouvelle fonctionnalité :</strong> Dessinez librement une zone sur la carte avec votre doigt pour sélectionner des hôtels.</p>
+                <p>Cliquez sur "Commencer le dessin", puis tracez la forme de votre choix. Relâchez pour terminer le dessin.</p>
+            </div>
+            
+            <div class="map-controls">
+                <button id="start-draw" class="map-button">Commencer le dessin</button>
+                <button id="clear-draw" class="map-button clear">Effacer le dessin</button>
+            </div>
+            
+            <div id="hotels-in-zone" class="hotels-in-zone" style="display: none;">
+                <h3 id="hotel-count">0 hôtels trouvés dans la zone sélectionnée</h3>
+                <div id="hotel-list" class="hotel-list"></div>
+            </div>
         </div>
     </div>
 </div>
@@ -69,6 +160,8 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin=""></script>
+    <!-- Utilisation de Leaflet.FreeHandShapes pour le dessin à main levée -->
+    <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Initialiser la carte centrée sur la France
@@ -79,6 +172,9 @@
                 maxZoom: 19,
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
+            
+            // Variable pour stocker tous les hôtels
+            let allHotels = [];
             
             // Récupérer les données des hôtels depuis l'API
             fetch('{{ path('app_map_hotels_data') }}')
@@ -121,6 +217,12 @@
                     // Ajouter le groupe de marqueurs à la carte
                     markers.addTo(map);
                     
+                    // Stocker tous les hôtels pour la fonctionnalité de dessin
+                    allHotels = hotels;
+                    
+                    // Initialiser la fonctionnalité de dessin à main levée
+                    initFreeDraw(map, allHotels);
+                    
                     // Ne pas ajuster automatiquement la vue pour conserver la vue initiale de la France
                     // La vue initiale est déjà définie avec setView([46.603354, 1.888334], 6)
                 })
@@ -131,6 +233,211 @@
                     errorDiv.innerHTML = '<p>Une erreur est survenue lors du chargement des données des hôtels.</p>';
                     document.querySelector('.map-container').appendChild(errorDiv);
                 });
+                
+            // Fonction pour initialiser le dessin libre à main levée
+            function initFreeDraw(map, hotels) {
+                // Créer un layer pour les formes dessinées
+                const drawnItems = new L.FeatureGroup();
+                map.addLayer(drawnItems);
+                
+                // Variables pour le dessin à main levée
+                let isDrawing = false;
+                let drawingMode = false;
+                let drawingPoints = [];
+                let currentPolyline = null;
+                let currentPolygon = null;
+                
+                // Référence au bouton de dessin
+                const startDrawButton = document.getElementById('start-draw');
+                
+                // Fonction pour commencer le dessin
+                function startDrawing(e) {
+                    if (!drawingMode) return;
+                    
+                    isDrawing = true;
+                    drawingPoints = [];
+                    
+                    // Désactiver le défilement de la carte pendant le dessin
+                    map.dragging.disable();
+                    map.doubleClickZoom.disable();
+                    
+                    // Obtenir les coordonnées du point de départ
+                    const point = e.latlng;
+                    drawingPoints.push([point.lng, point.lat]);
+                    
+                    // Créer une polyline pour visualiser le dessin en cours
+                    if (currentPolyline) {
+                        map.removeLayer(currentPolyline);
+                    }
+                    currentPolyline = L.polyline([point], {
+                        color: '#6c63ff',
+                        weight: 3
+                    }).addTo(map);
+                }
+                
+                // Fonction pour continuer le dessin
+                function continueDrawing(e) {
+                    if (!isDrawing || !drawingMode) return;
+                    
+                    // Obtenir les coordonnées du point actuel
+                    const point = e.latlng;
+                    drawingPoints.push([point.lng, point.lat]);
+                    
+                    // Mettre à jour la polyline
+                    currentPolyline.addLatLng(point);
+                }
+                
+                // Fonction pour terminer le dessin
+                function endDrawing(e) {
+                    if (!isDrawing || !drawingMode) return;
+                    
+                    // Réactiver le défilement de la carte
+                    map.dragging.enable();
+                    map.doubleClickZoom.enable();
+                    
+                    // Fermer le polygone en ajoutant le premier point à la fin
+                    if (drawingPoints.length > 2) {
+                        drawingPoints.push(drawingPoints[0]);
+                        
+                        // Convertir les points en coordonnées Leaflet
+                        const latLngs = drawingPoints.map(point => L.latLng(point[1], point[0]));
+                        
+                        // Supprimer la polyline temporaire
+                        if (currentPolyline) {
+                            map.removeLayer(currentPolyline);
+                            currentPolyline = null;
+                        }
+                        
+                        // Créer le polygone final
+                        currentPolygon = L.polygon(latLngs, {
+                            color: '#6c63ff',
+                            fillColor: '#6c63ff',
+                            fillOpacity: 0.2,
+                            weight: 2
+                        });
+                        
+                        // Ajouter le polygone à la carte et au groupe de formes
+                        drawnItems.addLayer(currentPolygon);
+                        
+                        // Créer un polygone Turf.js pour les calculs géospatiaux
+                        const polygon = turf.polygon([drawingPoints]);
+                        
+                        // Filtrer les hôtels qui sont dans le polygone
+                        const hotelsInPolygon = hotels.filter(hotel => {
+                            const point = turf.point([hotel.longitude, hotel.latitude]);
+                            return turf.booleanPointInPolygon(point, polygon);
+                        });
+                        
+                        // Afficher le nombre d'hôtels et la liste
+                        updateHotelList(hotelsInPolygon);
+                    }
+                    
+                    isDrawing = false;
+                    
+                    // Désactiver le mode dessin après avoir terminé
+                    drawingMode = false;
+                    startDrawButton.classList.remove('active');
+                    startDrawButton.textContent = 'Commencer le dessin';
+                }
+                
+                // Ajouter les gestionnaires d'événements pour la souris
+                map.on('mousedown', startDrawing);
+                map.on('mousemove', continueDrawing);
+                map.on('mouseup', endDrawing);
+                
+                // Ajouter les gestionnaires d'événements pour les appareils tactiles
+                map.on('touchstart', function(e) {
+                    e.preventDefault();
+                    startDrawing(e.touches[0]);
+                });
+                
+                map.on('touchmove', function(e) {
+                    e.preventDefault();
+                    continueDrawing(e.touches[0]);
+                });
+                
+                map.on('touchend', function(e) {
+                    e.preventDefault();
+                    endDrawing(e.touches[0] || e.changedTouches[0]);
+                });
+                
+                // Configurer le bouton pour commencer le dessin
+                startDrawButton.addEventListener('click', function() {
+                    drawingMode = !drawingMode;
+                    
+                    if (drawingMode) {
+                        startDrawButton.classList.add('active');
+                        startDrawButton.textContent = 'Dessin actif';
+                    } else {
+                        startDrawButton.classList.remove('active');
+                        startDrawButton.textContent = 'Commencer le dessin';
+                    }
+                });
+                
+                // Configurer le bouton pour effacer le dessin
+                document.getElementById('clear-draw').addEventListener('click', function() {
+                    drawnItems.clearLayers();
+                    document.getElementById('hotels-in-zone').style.display = 'none';
+                    if (currentPolyline) {
+                        map.removeLayer(currentPolyline);
+                        currentPolyline = null;
+                    }
+                    
+                    // Désactiver le mode dessin
+                    drawingMode = false;
+                    startDrawButton.classList.remove('active');
+                    startDrawButton.textContent = 'Commencer le dessin';
+                });
+            }
+            
+            // Fonction pour mettre à jour la liste des hôtels
+            function updateHotelList(filteredHotels) {
+                const hotelCountElement = document.getElementById('hotel-count');
+                const hotelListElement = document.getElementById('hotel-list');
+                const hotelsInZoneElement = document.getElementById('hotels-in-zone');
+                
+                // Afficher la section
+                hotelsInZoneElement.style.display = 'block';
+                
+                // Mettre à jour le compteur
+                hotelCountElement.textContent = `${filteredHotels.length} hôtel${filteredHotels.length > 1 ? 's' : ''} trouvé${filteredHotels.length > 1 ? 's' : ''} dans la zone sélectionnée`;
+                
+                // Mettre à jour la liste
+                hotelListElement.innerHTML = '';
+                
+                if (filteredHotels.length === 0) {
+                    hotelListElement.innerHTML = '<div class="p-4 text-center text-gray-500">Aucun hôtel dans cette zone</div>';
+                    return;
+                }
+                
+                filteredHotels.forEach(hotel => {
+                    const hotelItem = document.createElement('div');
+                    hotelItem.className = 'hotel-item';
+                    hotelItem.innerHTML = `
+                        <div class="hotel-item-content">
+                            <div class="hotel-item-name">${hotel.name}</div>
+                            <div class="hotel-item-address">${hotel.address}</div>
+                        </div>
+                    `;
+                    
+                    // Ajouter un événement de clic pour centrer la carte sur cet hôtel
+                    hotelItem.addEventListener('click', function() {
+                        map.setView([hotel.latitude, hotel.longitude], 15);
+                        // Trouver le marqueur correspondant et l'ouvrir
+                        const markers = document.querySelectorAll('.leaflet-marker-icon');
+                        markers.forEach(marker => {
+                            // Simuler un clic sur le marqueur
+                            if (marker._leaflet_pos && 
+                                Math.abs(map.project([hotel.latitude, hotel.longitude]).x - marker._leaflet_pos.x) < 10 && 
+                                Math.abs(map.project([hotel.latitude, hotel.longitude]).y - marker._leaflet_pos.y) < 10) {
+                                marker.click();
+                            }
+                        });
+                    });
+                    
+                    hotelListElement.appendChild(hotelItem);
+                });
+            }
         });
     </script>
 {% endblock %}
