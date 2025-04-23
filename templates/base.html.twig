@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %}MatchRoom - Mise en relation entre voyageurs et hôteliers{% endblock %}</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⭐️</text></svg>">
+        
+        {# Google Fonts #}
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+        
+        {# Tailwind CSS #}
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        fontFamily: {
+                            'sans': ['Poppins', 'sans-serif'],
+                            'serif': ['Playfair Display', 'serif'],
+                        },
+                        colors: {
+                            'primary': {
+                                DEFAULT: '#3A2E27',
+                                '50': '#F5F2ED',
+                                '100': '#E8E0D8',
+                                '200': '#D2C1A9',
+                                '300': '#BF9D7E',
+                                '400': '#8C6F57',
+                                '500': '#3A2E27',
+                                '600': '#2E251F',
+                                '700': '#1C1917',
+                                '800': '#0F0D0C',
+                                '900': '#000000',
+                            },
+                        }
+                    }
+                }
+            }
+        </script>
+        
+        {% block stylesheets %}{% endblock %}
+    </head>
+    <body class="bg-primary-50 text-primary-700 min-h-screen">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="flash-{{ label }} bg-{{ label == 'success' ? 'green' : 'red' }}-100 border-l-4 border-{{ label == 'success' ? 'green' : 'red' }}-500 text-{{ label == 'success' ? 'green' : 'red' }}-700 p-4 mb-4">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+        
+        {% block body %}{% endblock %}
+        
+        {% block javascripts %}{% endblock %}
+    </body>
+</html>
