@@ -1,0 +1,57 @@
+<nav class="bg-primary-500 text-white shadow-md">
+    <div class="container mx-auto px-4 py-3">
+        <div class="flex justify-between items-center">
+            <!-- Logo et nom du site -->
+            <div class="flex items-center">
+                <a href="{{ path('app_home') }}" class="text-2xl font-serif font-bold">MatchRoom</a>
+            </div>
+            
+            <!-- Menu de navigation -->
+            <div class="hidden md:flex space-x-8">
+                <a href="{{ path('app_home') }}" class="hover:text-primary-200 transition-colors">Accueil</a>
+                <a href="{{ path('app_map') }}" class="hover:text-primary-200 transition-colors">Carte</a>
+                {% if is_granted('ROLE_USER') or is_granted('ROLE_HOTEL') %}
+                    <a href="#" class="hover:text-primary-200 transition-colors">Rechercher</a>
+                    <a href="{{ path('app_profile') }}" class="hover:text-primary-200 transition-colors">Profil</a>
+                    <a href="{{ path('app_logout') }}" class="hover:text-primary-200 transition-colors">Déconnexion</a>
+                {% else %}
+                    <a href="{{ path('app_login') }}" class="hover:text-primary-200 transition-colors">Connexion</a>
+                    <a href="{{ path('app_register_client') }}" class="hover:text-primary-200 transition-colors">Inscription</a>
+                {% endif %}
+            </div>
+            
+            <!-- Menu mobile (hamburger) -->
+            <div class="md:hidden">
+                <button id="mobile-menu-button" class="text-white focus:outline-none">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Menu mobile (contenu) -->
+        <div id="mobile-menu" class="md:hidden hidden mt-2">
+            <div class="flex flex-col space-y-2 py-2">
+                <a href="{{ path('app_home') }}" class="hover:text-primary-200 transition-colors py-1">Accueil</a>
+                <a href="{{ path('app_map') }}" class="hover:text-primary-200 transition-colors py-1">Carte</a>
+                {% if is_granted('ROLE_USER') or is_granted('ROLE_HOTEL') %}
+                    <a href="#" class="hover:text-primary-200 transition-colors py-1">Rechercher</a>
+                    <a href="{{ path('app_profile') }}" class="hover:text-primary-200 transition-colors py-1">Profil</a>
+                    <a href="{{ path('app_logout') }}" class="hover:text-primary-200 transition-colors py-1">Déconnexion</a>
+                {% else %}
+                    <a href="{{ path('app_login') }}" class="hover:text-primary-200 transition-colors py-1">Connexion</a>
+                    <a href="{{ path('app_register_client') }}" class="hover:text-primary-200 transition-colors py-1">Inscription</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</nav>
+
+<script>
+    // Toggle du menu mobile
+    document.getElementById('mobile-menu-button').addEventListener('click', function() {
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenu.classList.toggle('hidden');
+    });
+</script>

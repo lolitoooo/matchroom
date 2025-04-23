@@ -1,0 +1,150 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier mon profil - MatchRoom{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .autocomplete-suggestions {
+        border: 1px solid #ddd;
+        background: #fff;
+        overflow: auto;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-radius: 0.375rem;
+    }
+    .autocomplete-suggestion {
+        padding: 10px 15px;
+        white-space: nowrap;
+        overflow: hidden;
+        cursor: pointer;
+        font-size: 0.875rem;
+    }
+    .autocomplete-selected {
+        background: #f0f0f0;
+    }
+    .autocomplete-suggestions strong {
+        font-weight: 600;
+        color: #3A2E27;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="min-h-screen flex flex-col">
+    <!-- Navbar -->
+    {% include 'partials/_navbar.html.twig' %}
+
+    <!-- Contenu principal -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-primary-500 text-white p-6">
+                <h1 class="text-2xl font-serif font-bold">Modifier mon profil</h1>
+            </div>
+            
+            <div class="p-6">
+                <form method="POST" action="{{ path('app_profile_edit') }}">
+                    <h2 class="text-xl font-semibold text-primary-700 mb-6">Informations personnelles</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div>
+                            <label for="firstname" class="block text-sm font-medium text-primary-700 mb-1">Prénom</label>
+                            <input type="text" id="firstname" name="firstname" value="{{ user.firstname }}" class="mt-1 block w-full border border-primary-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" required>
+                        </div>
+                        
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-primary-700 mb-1">Nom</label>
+                            <input type="text" id="name" name="name" value="{{ user.name }}" class="mt-1 block w-full border border-primary-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" required>
+                        </div>
+                        
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-primary-700 mb-1">Email</label>
+                            <input type="email" id="email" value="{{ user.email }}" class="mt-1 block w-full border border-primary-300 rounded-md shadow-sm py-2 px-3 bg-gray-100 cursor-not-allowed" disabled>
+                            <p class="text-xs text-primary-500 mt-1">L'adresse email ne peut pas être modifiée</p>
+                        </div>
+                        
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-primary-700 mb-1">Téléphone</label>
+                            <input type="tel" id="phone" name="phone" value="{{ user.phone }}" class="mt-1 block w-full border border-primary-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" required>
+                        </div>
+                    </div>
+                    
+                    {% if 'ROLE_HOTEL' in user.roles and hotel %}
+                        <hr class="my-8 border-primary-100">
+                        
+                        <h2 class="text-xl font-semibold text-primary-700 mb-6">Informations de l'hôtel</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                            <div>
+                                <label for="hotel_name" class="block text-sm font-medium text-primary-700 mb-1">Nom de l'hôtel</label>
+                                <input type="text" id="hotel_name" name="hotel_name" value="{{ hotel.name }}" class="mt-1 block w-full border border-primary-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" required>
+                            </div>
+                            
+                            <div>
+                                <label for="hotel_address" class="block text-sm font-medium text-primary-700 mb-1">Adresse</label>
+                                <input type="text" id="hotel_address" name="hotel_address" value="{{ hotel.address }}" class="mt-1 block w-full border border-primary-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" required autocomplete="off">
+                                <div id="address-suggestions" class="mt-1 text-sm text-primary-500"></div>
+                                <input type="hidden" id="hotel_latitude" name="hotel_latitude" value="{{ hotel.latitude }}">
+                                <input type="hidden" id="hotel_longitude" name="hotel_longitude" value="{{ hotel.longitude }}">
+                            </div>
+                            
+                            <div class="md:col-span-2">
+                                <label for="hotel_description" class="block text-sm font-medium text-primary-700 mb-1">Description</label>
+                                <textarea id="hotel_description" name="hotel_description" rows="4" class="mt-1 block w-full border border-primary-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">{{ hotel.description }}</textarea>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="flex justify-end space-x-4 mt-8">
+                        <a href="{{ path('app_profile') }}" class="bg-white border border-primary-300 text-primary-700 hover:bg-primary-50 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+                            Annuler
+                        </a>
+                        <button type="submit" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+                            Enregistrer les modifications
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block javascripts %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.devbridge-autocomplete/1.4.11/jquery.autocomplete.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#hotel_address').autocomplete({
+            serviceUrl: 'https://api-adresse.data.gouv.fr/search/',
+            paramName: 'q',
+            transformResult: function(response) {
+                const jsonResponse = JSON.parse(response);
+                return {
+                    suggestions: $.map(jsonResponse.features, function(dataItem) {
+                        return {
+                            value: dataItem.properties.label,
+                            data: {
+                                latitude: dataItem.geometry.coordinates[1],
+                                longitude: dataItem.geometry.coordinates[0],
+                                city: dataItem.properties.city,
+                                postcode: dataItem.properties.postcode
+                            }
+                        };
+                    })
+                };
+            },
+            onSelect: function(suggestion) {
+                $('#hotel_latitude').val(suggestion.data.latitude);
+                $('#hotel_longitude').val(suggestion.data.longitude);
+                $('#address-suggestions').html(
+                    '<span class="text-xs italic">Coordonnées géographiques enregistrées</span>'
+                );
+            },
+            minChars: 3,
+            showNoSuggestionNotice: true,
+            noSuggestionNotice: 'Aucune adresse trouvée',
+            deferRequestBy: 300
+        });
+    });
+</script>
+{% endblock %}
+
+{% endblock %}
