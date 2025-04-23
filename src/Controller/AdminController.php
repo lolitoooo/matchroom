@@ -193,7 +193,9 @@ class AdminController extends AbstractController
     public function newHotel(Request $request, EntityManagerInterface $entityManager, FormFactoryInterface $formFactory): Response
     {
         $hotel = new Hotel();
-        $form = $formFactory->create(AdminHotelType::class, $hotel);
+        $form = $formFactory->create(AdminHotelType::class, $hotel, [
+            'entity_manager' => $entityManager
+        ]);
         $form->handleRequest($request);
         
         if ($form->isSubmitted() && $form->isValid()) {
@@ -213,7 +215,9 @@ class AdminController extends AbstractController
     #[Route('/hotel/{id}/edit', name: 'app_admin_hotel_edit')]
     public function editHotel(Hotel $hotel, Request $request, EntityManagerInterface $entityManager, FormFactoryInterface $formFactory): Response
     {
-        $form = $formFactory->create(AdminHotelType::class, $hotel);
+        $form = $formFactory->create(AdminHotelType::class, $hotel, [
+            'entity_manager' => $entityManager
+        ]);
         $form->handleRequest($request);
         
         if ($form->isSubmitted() && $form->isValid()) {

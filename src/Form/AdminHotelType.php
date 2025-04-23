@@ -15,6 +15,19 @@ class AdminHotelType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        // Récupérer tous les utilisateurs avec le rôle HOTEL
+        $entityManager = $options['entity_manager'];
+        $userRepository = $entityManager->getRepository(User::class);
+        $allUsers = $userRepository->findAll();
+        
+        // Filtrer les utilisateurs qui ont le rôle HOTEL
+        $hotelUsers = [];
+        foreach ($allUsers as $user) {
+            if (in_array('ROLE_HOTEL', $user->getRoles())) {
+                $hotelUsers[] = $user;
+            }
+        }
+        
         $builder
             ->add('name', TextType::class, [
                 'label' => 'Nom de l\'hôtel',
@@ -54,20 +67,11 @@ class AdminHotelType extends AbstractType
             ->add('user', EntityType::class, [
                 'class' => User::class,
                 'label' => 'Propriétaire',
+                'choices' => $hotelUsers,
                 'choice_label' => function (User $user) {
                     return $user->getFirstname() . ' ' . $user->getName() . ' (' . $user->getEmail() . ')';
                 },
-                'query_builder' => function ($er) {
-                    return $er->createQueryBuilder('u')
-                        ->where('u.roles LIKE :role')
-                        ->setParameter('role', '%ROLE_HOTEL%')
-                        ->orderBy('u.name', 'ASC');
-                },
-                'constraints' => [
-                    new NotBlank([
-                        'message' => 'Veuillez sélectionner un propriétaire',
-                    ]),
-                ],
+                'required' => false,
             ])
         ;
     }
@@ -77,5 +81,7 @@ class AdminHotelType extends AbstractType
         $resolver->setDefaults([
             'data_class' => Hotel::class,
         ]);
+        
+        $resolver->setRequired(['entity_manager']);
     }
 }
