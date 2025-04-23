@@ -22,3 +22,13 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+    
+    # Gestionnaire d'exception pour les erreurs d'accès refusé
+    App\EventListener\AccessDeniedListener:
+        tags:
+            - { name: kernel.event_subscriber }
+            
+    # Gestionnaire pour les utilisateurs bannis
+    App\Security\BannedUserChecker:
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest, priority: 10 }

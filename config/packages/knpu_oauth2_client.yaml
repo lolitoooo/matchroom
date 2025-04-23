@@ -8,4 +8,4 @@ knpu_oauth2_client:
             redirect_route: connect_google_check
             redirect_params: {}
             # Forcer l'utilisation de HTTPS pour la redirection
-            use_https: true
+            # use_https: true

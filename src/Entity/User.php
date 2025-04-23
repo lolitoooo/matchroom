@@ -48,6 +48,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Notification::class)]
     private Collection $notifications;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $banned = false;
+
     public function __construct()
     {
         $this->hotels = new ArrayCollection();
@@ -87,14 +90,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getRoles(): array
     {
-        $roles = $this->roles;
-        $roles[] = 'ROLE_USER';
-
-        return array_unique($roles);
+        return $this->roles;
     }
 
     public function setRoles(array $roles): static
     {
+        // S'assurer qu'il y a au moins ROLE_USER dans le tableau
+        if (empty($roles)) {
+            $roles = ['ROLE_USER'];
+        }
+        
         $this->roles = $roles;
 
         return $this;
@@ -243,6 +248,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $notification->setUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function isBanned(): bool
+    {
+        return $this->banned;
+    }
+
+    public function getBanned(): bool
+    {
+        return $this->banned;
+    }
+
+    public function setBanned(bool $banned): static
+    {
+        $this->banned = $banned;
 
         return $this;
     }

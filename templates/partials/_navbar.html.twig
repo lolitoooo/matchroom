@@ -10,9 +10,12 @@
             <div class="hidden md:flex space-x-8">
                 <a href="{{ path('app_home') }}" class="hover:text-primary-200 transition-colors">Accueil</a>
                 <a href="{{ path('app_map') }}" class="hover:text-primary-200 transition-colors">Carte</a>
-                {% if is_granted('ROLE_USER') or is_granted('ROLE_HOTEL') %}
+                {% if app.user %}
                     <a href="#" class="hover:text-primary-200 transition-colors">Rechercher</a>
                     <a href="{{ path('app_profile') }}" class="hover:text-primary-200 transition-colors">Profil</a>
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a href="{{ path('app_admin_dashboard') }}" class="hover:text-primary-200 transition-colors font-bold text-yellow-300">Administration</a>
+                    {% endif %}
                     <a href="{{ path('app_logout') }}" class="hover:text-primary-200 transition-colors">Déconnexion</a>
                 {% else %}
                     <a href="{{ path('app_login') }}" class="hover:text-primary-200 transition-colors">Connexion</a>
@@ -35,9 +38,12 @@
             <div class="flex flex-col space-y-2 py-2">
                 <a href="{{ path('app_home') }}" class="hover:text-primary-200 transition-colors py-1">Accueil</a>
                 <a href="{{ path('app_map') }}" class="hover:text-primary-200 transition-colors py-1">Carte</a>
-                {% if is_granted('ROLE_USER') or is_granted('ROLE_HOTEL') %}
+                {% if app.user %}
                     <a href="#" class="hover:text-primary-200 transition-colors py-1">Rechercher</a>
                     <a href="{{ path('app_profile') }}" class="hover:text-primary-200 transition-colors py-1">Profil</a>
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a href="{{ path('app_admin_dashboard') }}" class="hover:text-primary-200 transition-colors py-1 font-bold text-yellow-300">Administration</a>
+                    {% endif %}
                     <a href="{{ path('app_logout') }}" class="hover:text-primary-200 transition-colors py-1">Déconnexion</a>
                 {% else %}
                     <a href="{{ path('app_login') }}" class="hover:text-primary-200 transition-colors py-1">Connexion</a>

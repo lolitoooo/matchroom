@@ -1,0 +1,179 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Administration - Tableau de bord{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-serif font-bold mb-8 text-gray-800">Tableau de bord d'administration</h1>
+    
+    {# Widgets de statistiques #}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <a href="{{ path('app_admin_users') }}" class="transform transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
+            <div class="bg-primary-500 text-white rounded-xl shadow-md overflow-hidden h-full">
+                <div class="p-6 text-center">
+                    <div class="text-4xl mb-3">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="text-4xl font-bold mb-1">{{ user_count }}</div>
+                    <div class="text-lg font-medium">Utilisateurs</div>
+                </div>
+            </div>
+        </a>
+        
+        <a href="{{ path('app_admin_hotels') }}" class="transform transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
+            <div class="bg-emerald-600 text-white rounded-xl shadow-md overflow-hidden h-full">
+                <div class="p-6 text-center">
+                    <div class="text-4xl mb-3">
+                        <i class="fas fa-hotel"></i>
+                    </div>
+                    <div class="text-4xl font-bold mb-1">{{ hotel_count }}</div>
+                    <div class="text-lg font-medium">Hôtels</div>
+                </div>
+            </div>
+        </a>
+        
+        <a href="{{ path('app_admin_users') }}" class="transform transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
+            <div class="bg-blue-500 text-white rounded-xl shadow-md overflow-hidden h-full">
+                <div class="p-6 text-center">
+                    <div class="text-4xl mb-3">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                    <div class="text-4xl font-bold mb-1">{{ user_clients|length }}</div>
+                    <div class="text-lg font-medium">Clients</div>
+                </div>
+            </div>
+        </a>
+        
+        <a href="{{ path('app_admin_users') }}" class="transform transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
+            <div class="bg-amber-500 text-white rounded-xl shadow-md overflow-hidden h-full">
+                <div class="p-6 text-center">
+                    <div class="text-4xl mb-3">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="text-4xl font-bold mb-1">{{ hoteliers|length }}</div>
+                    <div class="text-lg font-medium">Hôteliers</div>
+                </div>
+            </div>
+        </a>
+    </div>
+    
+    {# Widgets de gestion #}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+        <div class="bg-white rounded-xl shadow-md overflow-hidden h-full">
+            <div class="bg-primary-500 text-white px-6 py-4 flex justify-between items-center">
+                <h2 class="text-xl font-medium"><i class="fas fa-users mr-2"></i> Gestion des utilisateurs</h2>
+                <a href="{{ path('app_admin_user_new') }}" class="bg-white text-primary-500 hover:bg-gray-100 px-3 py-1 rounded-md text-sm font-medium transition-colors">
+                    <i class="fas fa-plus mr-1"></i> Ajouter
+                </a>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-6">Gérez les comptes utilisateurs, modifiez leurs informations ou bannissez-les.</p>
+                
+                <h3 class="text-lg font-medium text-gray-800 mb-4">Derniers utilisateurs</h3>
+                {% for user in user_clients|slice(0, 3) %}
+                    <div class="p-3 rounded-lg mb-3 hover:bg-gray-50 transition-colors">
+                        <div class="flex justify-between items-center mb-1">
+                            <div class="font-medium">{{ user.firstname }} {{ user.name }}</div>
+                            <div class="flex space-x-2">
+                                <a href="{{ path('app_admin_user_edit', {'id': user.id}) }}" class="text-primary-500 hover:text-primary-700 transition-colors">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if user.banned %}
+                                    <form method="post" action="{{ path('app_admin_user_unban', {'id': user.id}) }}" class="inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('unban' ~ user.id) }}">
+                                        <button class="text-emerald-500 hover:text-emerald-700 transition-colors" type="submit">
+                                            <i class="fas fa-unlock"></i>
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <form method="post" action="{{ path('app_admin_user_ban', {'id': user.id}) }}" class="inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('ban' ~ user.id) }}">
+                                        <button class="text-amber-500 hover:text-amber-700 transition-colors" type="submit">
+                                            <i class="fas fa-ban"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="text-gray-500 text-sm">{{ user.email }}</div>
+                    </div>
+                {% else %}
+                    <div class="bg-blue-50 text-blue-800 p-4 rounded-lg">Aucun utilisateur inscrit</div>
+                {% endfor %}
+                
+                <div class="text-center mt-6">
+                    <a href="{{ path('app_admin_users') }}" class="inline-block bg-primary-500 hover:bg-primary-600 text-white font-medium px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-list mr-2"></i> Voir tous les utilisateurs
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-md overflow-hidden h-full">
+            <div class="bg-emerald-600 text-white px-6 py-4 flex justify-between items-center">
+                <h2 class="text-xl font-medium"><i class="fas fa-hotel mr-2"></i> Gestion des hôtels</h2>
+                <a href="{{ path('app_admin_hotel_new') }}" class="bg-white text-emerald-600 hover:bg-gray-100 px-3 py-1 rounded-md text-sm font-medium transition-colors">
+                    <i class="fas fa-plus mr-1"></i> Ajouter
+                </a>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-6">Gérez les hôtels, modifiez leurs informations ou supprimez-les.</p>
+                
+                <h3 class="text-lg font-medium text-gray-800 mb-4">Derniers hôtels</h3>
+                {% for hotel in hotels|slice(0, 3) %}
+                    <div class="p-3 rounded-lg mb-3 hover:bg-gray-50 transition-colors">
+                        <div class="flex justify-between items-center mb-1">
+                            <div class="font-medium">{{ hotel.name }}</div>
+                            <div class="flex space-x-2">
+                                <a href="{{ path('app_admin_hotel_edit', {'id': hotel.id}) }}" class="text-primary-500 hover:text-primary-700 transition-colors">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="post" action="{{ path('app_admin_hotel_delete', {'id': hotel.id}) }}" class="inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ hotel.id) }}">
+                                    <button class="text-red-500 hover:text-red-700 transition-colors" type="submit" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet hôtel ?');">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="text-gray-500 text-sm">{{ hotel.address }}</div>
+                    </div>
+                {% else %}
+                    <div class="bg-blue-50 text-blue-800 p-4 rounded-lg">Aucun hôtel enregistré</div>
+                {% endfor %}
+                
+                <div class="text-center mt-6">
+                    <a href="{{ path('app_admin_hotels') }}" class="inline-block bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-list mr-2"></i> Voir tous les hôtels
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {# Statistiques récentes #}
+    <div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+        <div class="bg-gray-800 text-white px-6 py-4">
+            <h2 class="text-xl font-medium"><i class="fas fa-chart-line mr-2"></i> Activité récente</h2>
+        </div>
+        <div class="p-6">
+            <div class="bg-blue-50 text-blue-800 p-4 rounded-lg">
+                <i class="fas fa-info-circle mr-2"></i> Cette section affichera les statistiques d'activité récente de la plateforme.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Animation d'entrée pour les widgets
+    document.addEventListener('DOMContentLoaded', function() {
+        const widgets = document.querySelectorAll('.grid > a');
+        widgets.forEach((widget, index) => {
+            widget.style.opacity = '0';
+            setTimeout(() => {
+                widget.style.opacity = '1';
+            }, index * 100);
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,311 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Administration - Gestion des utilisateurs{% endblock %}
+
+{% block body %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- En-tête -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <h1 class="text-3xl font-serif font-bold text-gray-800 flex items-center">
+            <i class="fas fa-users mr-3 text-primary-500"></i> Gestion des utilisateurs
+        </h1>
+        <div class="flex flex-wrap gap-3">
+            <a href="{{ path('app_admin_dashboard') }}" class="inline-flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition duration-300 ease-in-out">
+                <i class="fas fa-arrow-left mr-2"></i> Tableau de bord
+            </a>
+            <a href="{{ path('app_admin_user_new') }}" class="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition duration-300 ease-in-out">
+                <i class="fas fa-plus mr-2"></i> Ajouter un utilisateur
+            </a>
+        </div>
+    </div>
+    
+    <!-- Messages flash -->
+    {% for message in app.flashes('success') %}
+        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm flex items-center" role="alert">
+            <i class="fas fa-check-circle mr-3 text-green-500"></i>
+            <div>{{ message }}</div>
+            <button type="button" class="ml-auto" onclick="this.parentElement.remove()">
+                <i class="fas fa-times text-green-500 hover:text-green-700"></i>
+            </button>
+        </div>
+    {% endfor %}
+    
+    <!-- Section de filtres -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 mb-8">
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-100">
+            <h2 class="text-lg font-medium text-gray-800 flex items-center">
+                <i class="fas fa-filter mr-2 text-primary-500"></i> Filtres
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="flex flex-wrap gap-3 mb-4">
+                <div class="filter-role">
+                    <input type="checkbox" id="filter-all" class="role-checkbox hidden" checked data-role="all">
+                    <label for="filter-all" class="inline-block px-4 py-2 rounded-full border border-gray-300 bg-white text-gray-700 cursor-pointer hover:bg-gray-50 transition duration-300 ease-in-out filter-label">
+                        Tous
+                    </label>
+                </div>
+                <div class="filter-role">
+                    <input type="checkbox" id="filter-user" class="role-checkbox hidden" data-role="ROLE_USER">
+                    <label for="filter-user" class="inline-block px-4 py-2 rounded-full border border-gray-300 bg-white text-gray-700 cursor-pointer hover:bg-gray-50 transition duration-300 ease-in-out filter-label">
+                        Clients
+                    </label>
+                </div>
+                <div class="filter-role">
+                    <input type="checkbox" id="filter-hotel" class="role-checkbox hidden" data-role="ROLE_HOTEL">
+                    <label for="filter-hotel" class="inline-block px-4 py-2 rounded-full border border-gray-300 bg-white text-gray-700 cursor-pointer hover:bg-gray-50 transition duration-300 ease-in-out filter-label">
+                        Hôteliers
+                    </label>
+                </div>
+                <div class="filter-role">
+                    <input type="checkbox" id="filter-admin" class="role-checkbox hidden" data-role="ROLE_ADMIN">
+                    <label for="filter-admin" class="inline-block px-4 py-2 rounded-full border border-gray-300 bg-white text-gray-700 cursor-pointer hover:bg-gray-50 transition duration-300 ease-in-out filter-label">
+                        Administrateurs
+                    </label>
+                </div>
+            </div>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-gray-400"></i>
+                </div>
+                <input type="text" id="user-search" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500" placeholder="Rechercher un utilisateur...">
+            </div>
+        </div>
+    </div>
+        <!-- Liste des utilisateurs -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="users-container">
+        {% for user in users %}
+            <div class="user-item transform transition-all duration-300 hover:-translate-y-1" data-roles="{{ user.roles|json_encode() }}">
+                <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 h-full">
+                    <!-- En-tête de la carte utilisateur -->
+                    <div class="{% if 'ROLE_ADMIN' in user.roles %}bg-red-600{% elseif 'ROLE_HOTEL' in user.roles %}bg-amber-500{% else %}bg-blue-600{% endif %} px-6 py-4 text-white">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 w-12 h-12 bg-white rounded-full flex items-center justify-center text-gray-700 font-bold text-xl shadow-sm">
+                                {{ user.firstname|first|upper }}{{ user.name|first|upper }}
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-medium">{{ user.firstname }} {{ user.name }}</h3>
+                                <p class="text-sm opacity-90">{{ user.email }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Corps de la carte utilisateur -->
+                    <div class="p-6 space-y-4">
+                        <!-- Téléphone -->
+                        <div class="flex items-start">
+                            <i class="fas fa-phone mt-1 text-gray-500 w-5"></i>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-gray-700">Téléphone</p>
+                                {% if user.phone %}
+                                    <p class="text-sm text-gray-600">{{ user.phone }}</p>
+                                {% else %}
+                                    <p class="text-sm text-gray-400 italic">Non renseigné</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Rôles -->
+                        <div class="flex items-start">
+                            <i class="fas fa-user-tag mt-1 text-gray-500 w-5"></i>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-gray-700">Rôle</p>
+                                <div class="flex mt-1 space-x-2">
+                                    {% for role in user.roles %}
+                                        {% if role != 'ROLE_USER' or user.roles|length == 1 %}
+                                            <span class="inline-flex items-center px-3 py-1 rounded-md text-sm font-medium border shadow-sm
+                                                {% if role == 'ROLE_ADMIN' %}
+                                                    bg-purple-50 text-purple-700 border-purple-200
+                                                {% elseif role == 'ROLE_HOTEL' %}
+                                                    bg-amber-50 text-amber-700 border-amber-200
+                                                {% else %}
+                                                    bg-blue-50 text-blue-700 border-blue-200
+                                                {% endif %}
+                                            ">
+                                                {% if role == 'ROLE_ADMIN' %}
+                                                    <i class="fas fa-crown mr-2"></i>
+                                                {% elseif role == 'ROLE_HOTEL' %}
+                                                    <i class="fas fa-hotel mr-2"></i>
+                                                {% else %}
+                                                    <i class="fas fa-user mr-2"></i>
+                                                {% endif %}
+                                                {{ role|replace({'ROLE_': ''}) }}
+                                            </span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Statut -->
+                        <div class="flex items-start">
+                            <i class="fas fa-shield-alt mt-1 text-gray-500 w-5"></i>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-gray-700">Statut</p>
+                                {% if user.banned %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-md text-sm font-medium bg-red-50 text-red-700 border border-red-200 shadow-sm">
+                                        <i class="fas fa-ban mr-2"></i> Banni
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-md text-sm font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
+                                        <i class="fas fa-check-circle mr-2"></i> Actif
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div class="flex justify-center pt-4 space-x-2">
+                            <a href="{{ path('app_admin_user_edit', {'id': user.id}) }}" class="inline-flex items-center p-2 border border-gray-300 rounded-full text-primary-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition duration-300" title="Éditer">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            
+                            {% if user.banned %}
+                                <form method="post" action="{{ path('app_admin_user_unban', {'id': user.id}) }}" class="inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('unban' ~ user.id) }}">
+                                    <button type="submit" class="inline-flex items-center p-2 border border-gray-300 rounded-full text-green-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-300" title="Débannir">
+                                        <i class="fas fa-unlock"></i>
+                                    </button>
+                                </form>
+                            {% else %}
+                                <form method="post" action="{{ path('app_admin_user_ban', {'id': user.id}) }}" class="inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('ban' ~ user.id) }}">
+                                    <button type="submit" class="inline-flex items-center p-2 border border-gray-300 rounded-full text-amber-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition duration-300" title="Bannir" onclick="return confirm('Êtes-vous sûr de vouloir bannir cet utilisateur ?');">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                </form>
+                            {% endif %}
+                            
+                            <form method="post" action="{{ path('app_admin_user_delete', {'id': user.id}) }}" class="inline">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                                <button type="submit" class="inline-flex items-center p-2 border border-gray-300 rounded-full text-red-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-300" title="Supprimer" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-span-full">
+                <div class="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md">
+                    <div class="flex">
+                        <i class="fas fa-info-circle flex-shrink-0 mr-3"></i>
+                        <span>Aucun utilisateur trouvé</span>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% block javascripts %}
+{{ parent() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Style pour les filtres actifs
+        document.querySelectorAll('.role-checkbox').forEach(checkbox => {
+            const label = checkbox.nextElementSibling;
+            if (checkbox.checked) {
+                label.classList.remove('bg-white', 'text-gray-700');
+                label.classList.add('bg-primary-500', 'text-white', 'border-primary-500');
+            }
+            
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    label.classList.remove('bg-white', 'text-gray-700');
+                    label.classList.add('bg-primary-500', 'text-white', 'border-primary-500');
+                } else {
+                    label.classList.remove('bg-primary-500', 'text-white', 'border-primary-500');
+                    label.classList.add('bg-white', 'text-gray-700');
+                }
+            });
+        });
+        
+        // Filtrage par rôle
+        const roleFilters = document.querySelectorAll('.role-checkbox');
+        const userItems = document.querySelectorAll('.user-item');
+        const searchInput = document.getElementById('user-search');
+        
+        function updateUserList() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedRoles = [];
+            let showAll = false;
+            
+            // Vérifier quels filtres sont sélectionnés
+            roleFilters.forEach(filter => {
+                if (filter.checked) {
+                    if (filter.dataset.role === 'all') {
+                        showAll = true;
+                    } else {
+                        selectedRoles.push(filter.dataset.role);
+                    }
+                }
+            });
+            
+            // Appliquer les filtres
+            userItems.forEach(item => {
+                const userRoles = JSON.parse(item.dataset.roles);
+                const userName = item.querySelector('h3').textContent.toLowerCase();
+                const userEmail = item.querySelector('p').textContent.toLowerCase();
+                
+                const matchesSearch = userName.includes(searchTerm) || userEmail.includes(searchTerm);
+                const matchesRole = showAll || selectedRoles.some(role => userRoles.includes(role));
+                
+                if (matchesSearch && matchesRole) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+        
+        // Événements pour les filtres
+        roleFilters.forEach(filter => {
+            filter.addEventListener('change', function() {
+                if (this.dataset.role === 'all' && this.checked) {
+                    // Si "Tous" est coché, décocher les autres
+                    roleFilters.forEach(f => {
+                        if (f.dataset.role !== 'all') {
+                            f.checked = false;
+                            f.nextElementSibling.classList.remove('bg-primary-500', 'text-white', 'border-primary-500');
+                            f.nextElementSibling.classList.add('bg-white', 'text-gray-700');
+                        }
+                    });
+                } else if (this.checked) {
+                    // Si un autre filtre est coché, décocher "Tous"
+                    const allFilter = document.getElementById('filter-all');
+                    allFilter.checked = false;
+                    allFilter.nextElementSibling.classList.remove('bg-primary-500', 'text-white', 'border-primary-500');
+                    allFilter.nextElementSibling.classList.add('bg-white', 'text-gray-700');
+                }
+                
+                // Si aucun filtre n'est coché, cocher "Tous"
+                const anyChecked = Array.from(roleFilters).some(f => f.checked);
+                if (!anyChecked) {
+                    const allFilter = document.getElementById('filter-all');
+                    allFilter.checked = true;
+                    allFilter.nextElementSibling.classList.remove('bg-white', 'text-gray-700');
+                    allFilter.nextElementSibling.classList.add('bg-primary-500', 'text-white', 'border-primary-500');
+                }
+                
+                updateUserList();
+            });
+        });
+        
+        // Événement pour la recherche
+        searchInput.addEventListener('input', updateUserList);
+        
+        // Animation d'entrée
+        userItems.forEach((item, index) => {
+            item.style.opacity = '0';
+            item.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                item.style.opacity = '1';
+                item.style.transform = 'translateY(0)';
+            }, index * 50);
+        });
+    });
+</script>
+{% endblock %}
+
+{% endblock %}
