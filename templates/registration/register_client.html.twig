@@ -1,0 +1,76 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}MatchRoom - Inscription Client{% endblock %}
+
+{% block body %}
+<div class="min-h-screen flex items-center justify-center bg-primary-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-lg w-full bg-white rounded-lg shadow-xl overflow-hidden">
+        <div class="p-8 md:p-12">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-serif font-bold text-primary-700">Créer un compte client</h2>
+                <p class="mt-2 text-primary-500">Déjà inscrit ? <a href="{{ path('app_login') }}" class="font-medium text-primary-600 hover:text-primary-500">Connectez-vous</a></p>
+            </div>
+            
+            {% if error %}
+                <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-4 rounded" role="alert">
+                    <p class="text-red-700">{{ error }}</p>
+                </div>
+            {% endif %}
+
+            {% for flash_error in app.flashes('verify_email_error') %}
+                <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-4 rounded" role="alert">
+                    <p class="text-red-700">{{ flash_error }}</p>
+                </div>
+            {% endfor %}
+
+            <form action="{{ path('app_register_client') }}" method="post" class="space-y-6">
+                <div>
+                    <label for="firstname" class="block text-sm font-medium text-primary-700">Prénom</label>
+                    <input type="text" id="firstname" name="firstname" class="mt-1 block w-full border border-primary-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" placeholder="Votre prénom" required>
+                </div>
+                
+                <div>
+                    <label for="name" class="block text-sm font-medium text-primary-700">Nom</label>
+                    <input type="text" id="name" name="name" class="mt-1 block w-full border border-primary-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" placeholder="Votre nom" required>
+                </div>
+
+                <div>
+                    <label for="email" class="block text-sm font-medium text-primary-700">Email</label>
+                    <input type="email" id="email" name="email" class="mt-1 block w-full border border-primary-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" placeholder="Votre adresse email" required>
+                </div>
+
+                <div>
+                    <label for="phone" class="block text-sm font-medium text-primary-700">Téléphone</label>
+                    <input type="tel" id="phone" name="phone" class="mt-1 block w-full border border-primary-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" placeholder="Votre numéro de téléphone">
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-primary-700">Mot de passe</label>
+                    <input type="password" id="password" name="password" class="mt-1 block w-full border border-primary-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" placeholder="Choisissez un mot de passe sécurisé" required>
+                </div>
+
+                <div>
+                    <label for="confirm_password" class="block text-sm font-medium text-primary-700">Confirmer le mot de passe</label>
+                    <input type="password" id="confirm_password" name="confirm_password" class="mt-1 block w-full border border-primary-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" placeholder="Confirmez votre mot de passe" required>
+                </div>
+
+                <div class="flex items-start">
+                    <div class="flex items-center h-5">
+                        <input type="checkbox" id="agreeTerms" name="agreeTerms" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-primary-300 rounded" required>
+                    </div>
+                    <div class="ml-3 text-sm">
+                        <label for="agreeTerms" class="font-medium text-primary-700">J'accepte les conditions d'utilisation</label>
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 text-lg font-medium">
+                        Créer mon compte
+                    </button>
+                </div>
+            </form>
+        </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
