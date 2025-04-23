@@ -5,6 +5,10 @@ framework:
     # Note that the session will be started ONLY if you read or write from it.
     session: true
 
+    # Configuration pour les proxies (Traefik)
+    trusted_proxies: '%env(TRUSTED_PROXIES)%'
+    trusted_hosts: '%env(TRUSTED_HOSTS)%'
+
     #esi: true
     #fragments: true
 
