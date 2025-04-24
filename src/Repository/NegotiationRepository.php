@@ -69,4 +69,25 @@ class NegotiationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+    
+    /**
+     * Trouve les négociations pour les types de chambres spécifiés
+     * 
+     * @param array $roomTypeIds Tableau d'IDs de types de chambres
+     * @return array Les négociations associées aux types de chambres
+     */
+    public function findByRoomTypes(array $roomTypeIds): array
+    {
+        if (empty($roomTypeIds)) {
+            return [];
+        }
+        
+        return $this->createQueryBuilder('n')
+            ->join('n.roomType', 'r')
+            ->andWhere('r.id IN (:roomTypeIds)')
+            ->setParameter('roomTypeIds', $roomTypeIds)
+            ->orderBy('n.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -1,0 +1,433 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Faire une offre - {{ roomType.name }} - {{ hotel.name }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+    <style>
+        /* Styles pour le carrousel principal */
+        .main-swiper {
+            width: 100%;
+            height: 300px;
+            border-radius: 0.5rem;
+            margin-bottom: 10px;
+        }
+        
+        /* Styles pour le carrousel de vignettes */
+        .thumbs-swiper {
+            height: 80px;
+            box-sizing: border-box;
+            padding: 5px 0;
+        }
+        .thumbs-swiper .swiper-slide {
+            width: 80px;
+            height: 100%;
+            opacity: 0.5;
+            border-radius: 0.25rem;
+            overflow: hidden;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        .thumbs-swiper .swiper-slide-thumb-active {
+            opacity: 1;
+            border: 2px solid #4F46E5;
+        }
+        .swiper-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .swiper-button-next, .swiper-button-prev {
+            color: #4F46E5;
+            background: rgba(255, 255, 255, 0.5);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+        }
+        .swiper-button-next:after, .swiper-button-prev:after {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .swiper-pagination-bullet-active {
+            background-color: #4F46E5;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% include 'partials/_navbar.html.twig' %}
+
+    <div class="container mx-auto px-4 py-8 mb-12">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+                <div class="bg-primary-600 text-white p-4">
+                    <h1 class="text-2xl font-serif font-bold">Faire une offre pour {{ roomType.name }}</h1>
+                    <p class="text-primary-100">{{ hotel.name }}</p>
+                </div>
+                
+                <div class="p-6">
+                    <div class="flex flex-col md:flex-row gap-6 mb-6">
+                        <div class="md:w-1/2">
+                            {% if roomType.roomPhotos|length > 0 %}
+                                <!-- Carrousel principal -->
+                                <div class="main-swiper">
+                                    <div class="swiper-wrapper">
+                                        {% for photo in roomType.roomPhotos %}
+                                            <div class="swiper-slide">
+                                                <img src="{{ asset('uploads/room_photos/' ~ photo.filename) }}" 
+                                                    alt="{{ roomType.name }}" 
+                                                    class="w-full h-full object-cover">
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="swiper-pagination"></div>
+                                    <div class="swiper-button-next"></div>
+                                    <div class="swiper-button-prev"></div>
+                                </div>
+                                
+                                <!-- Carrousel de vignettes -->
+                                <div class="thumbs-swiper">
+                                    <div class="swiper-wrapper">
+                                        {% for photo in roomType.roomPhotos %}
+                                            <div class="swiper-slide">
+                                                <img src="{{ asset('uploads/room_photos/' ~ photo.filename) }}" 
+                                                    alt="{{ roomType.name }}">
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="w-full h-64 bg-gray-200 flex items-center justify-center rounded-lg">
+                                    <span class="text-gray-500">Aucune photo disponible</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="md:w-1/2">
+                            <h2 class="text-xl font-semibold text-primary-700 mb-2">Détails de la chambre</h2>
+                            <p class="text-gray-600 mb-4">{{ roomType.description }}</p>
+                            
+                            <div class="grid grid-cols-2 gap-2 mb-4">
+                                <div class="bg-primary-50 p-3 rounded">
+                                    <span class="text-sm text-primary-600">Capacité</span>
+                                    <p class="font-semibold">{{ roomType.capacity }} personne(s)</p>
+                                </div>
+                                <div class="bg-primary-50 p-3 rounded">
+                                    <span class="text-sm text-primary-600">Lits</span>
+                                    <p class="font-semibold">{{ roomType.bedCount }} lit(s)</p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-primary-50 p-4 rounded mb-4">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-primary-700 font-semibold">Prix standard</span>
+                                    <span class="text-2xl font-bold text-primary-700">{{ roomType.basePrice|number_format(2, ',', ' ') }} €</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-gray-200 pt-6">
+                        <h2 class="text-xl font-semibold text-primary-700 mb-4">Moteur de négociation</h2>
+                        
+                        <div class="bg-primary-50 p-4 rounded mb-6">
+                            <h3 class="font-medium text-primary-700 mb-2">Seuils définis par l'hôtelier :</h3>
+                            <ul class="space-y-2 text-sm">
+                                <li class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                    Acceptation automatique si la réduction proposée est ≤ {{ autoAcceptThreshold }}%
+                                </li>
+                                <li class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                    </svg>
+                                    Refus automatique si la réduction proposée est ≥ {{ autoRejectThreshold }}%
+                                </li>
+                                <li class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd" />
+                                    </svg>
+                                    Contre-offre automatique pour les propositions intermédiaires
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-primary-50 p-4 rounded mb-6">
+                            <h3 class="font-medium text-primary-700 mb-2">Délais :</h3>
+                            <ul class="space-y-2 text-sm">
+                                <li class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-600 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                                    </svg>
+                                    L'hôtelier dispose de {{ hotel.responseTimeHours }} heures pour répondre à une demande
+                                </li>
+                                <li class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-600 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                                    </svg>
+                                    Le client a {{ hotel.clientResponseTimeHours }} heures pour accepter une offre ou une contre-offre
+                                </li>
+                                <li class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-600 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd" />
+                                    </svg>
+                                    En cas de refus, le client est bloqué pendant {{ hotel.blockingPeriodHours }} heures pour cet hôtel
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="border-t border-gray-200 pt-6">
+                            <h2 class="text-xl font-semibold text-primary-700 mb-4">Votre offre</h2>
+                            
+                            {{ form_start(form, {'attr': {'class': 'space-y-4'}}) }}
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="mb-4">
+                                        {{ form_label(form.startDate, null, {'label_attr': {'class': 'block text-sm font-medium text-primary-700 mb-1'}}) }}
+                                        {{ form_widget(form.startDate, {'attr': {'class': 'w-full rounded-md border-gray-300 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50 date-picker'}}) }}
+                                        {{ form_errors(form.startDate, {'attr': {'class': 'text-red-500 text-xs mt-1'}}) }}
+                                        <div class="text-xs text-gray-500 mt-1">Les dates déjà réservées sont grisées et ne peuvent pas être sélectionnées.</div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        {{ form_label(form.endDate, null, {'label_attr': {'class': 'block text-sm font-medium text-primary-700 mb-1'}}) }}
+                                        {{ form_widget(form.endDate, {'attr': {'class': 'w-full rounded-md border-gray-300 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50 date-picker'}}) }}
+                                        {{ form_errors(form.endDate, {'attr': {'class': 'text-red-500 text-xs mt-1'}}) }}
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    {{ form_label(form.proposedPrice, null, {'label_attr': {'class': 'block text-sm font-medium text-primary-700 mb-1'}}) }}
+                                    <div class="relative">
+                                        {{ form_widget(form.proposedPrice, {'attr': {'class': 'w-full rounded-md border-gray-300 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50', 'id': 'price-input'}}) }}
+                                        <div id="discount-badge" class="absolute right-2 top-2 hidden px-2 py-1 text-xs font-semibold rounded"></div>
+                                    </div>
+                                    {{ form_errors(form.proposedPrice, {'attr': {'class': 'text-red-500 text-xs mt-1'}}) }}
+                                </div>
+                                
+                                <div>
+                                    {{ form_label(form.hotelResponse, 'Message (optionnel)', {'label_attr': {'class': 'block text-sm font-medium text-primary-700 mb-1'}}) }}
+                                    {{ form_widget(form.hotelResponse, {'attr': {'class': 'w-full rounded-md border-gray-300 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50', 'placeholder': 'Ajoutez un message à votre offre (facultatif)'}}) }}
+                                </div>
+                                
+                                <div class="pt-4">
+                                    <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 px-4 rounded-md transition duration-200">
+                                        Soumettre mon offre
+                                    </button>
+                                </div>
+                            {{ form_end(form) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-primary-700 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="font-serif text-xl font-bold mb-4">Match Room</h3>
+                    <p class="text-primary-200">Application de mise en relation entre voyageurs et hôteliers.</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Liens rapides</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ path('app_home') }}" class="text-primary-200 hover:text-white">Accueil</a></li>
+                        <li><a href="{{ path('app_map') }}" class="text-primary-200 hover:text-white">Carte</a></li>
+                        <li><a href="#" class="text-primary-200 hover:text-white">Comment ça marche</a></li>
+                        <li><a href="#" class="text-primary-200 hover:text-white">À propos</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Légal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ path('app_legal_terms') }}" class="text-primary-200 hover:text-white">Conditions d'utilisation</a></li>
+                        <li><a href="{{ path('app_legal_privacy') }}" class="text-primary-200 hover:text-white">Politique de confidentialité</a></li>
+                        <li><a href="{{ path('app_legal_notice') }}" class="text-primary-200 hover:text-white">Mentions légales</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Contact</h4>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                            </svg>
+                            <a href="mailto:contact@matchroom.com" class="text-primary-200 hover:text-white">contact@matchroom.com</a>
+                        </li>
+                        <li class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12z" clip-rule="evenodd" />
+                                <path fill-rule="evenodd" d="M10 4a1 1 0 100 2 1 1 0 000-2zm0 7a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            <a href="{{ path('app_contact') }}" class="text-primary-200 hover:text-white">Aide & Support</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-12 pt-8 border-t border-primary-600 text-center text-primary-300">
+                <p>&copy; {{ "now"|date("Y") }} MatchRoom. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/fr.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialiser le carrousel de vignettes
+            var thumbsSwiper = new Swiper('.thumbs-swiper', {
+                spaceBetween: 10,
+                slidesPerView: 'auto',
+                freeMode: true,
+                watchSlidesProgress: true
+            });
+            
+            // Initialiser le carrousel principal
+            var mainSwiper = new Swiper('.main-swiper', {
+                spaceBetween: 10,
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev'
+                },
+                pagination: {
+                    el: '.swiper-pagination',
+                    clickable: true
+                },
+                thumbs: {
+                    swiper: thumbsSwiper
+                },
+                autoplay: {
+                    delay: 5000,
+                    disableOnInteraction: false
+                }
+            });
+            
+            // Récupérer les dates réservées
+            const bookedDates = {{ bookedDates|raw }};
+            console.log('Dates réservées:', bookedDates);
+            
+            // Initialiser flatpickr avec la locale française
+            flatpickr.localize(flatpickr.l10ns.fr);
+            
+            // Fonction pour vérifier si une date est réservée
+            function isDateBooked(date) {
+                const dateString = date.toISOString().split('T')[0]; // Format YYYY-MM-DD
+                
+                for (const period of bookedDates) {
+                    const startDate = new Date(period.start + 'T00:00:00');
+                    const endDate = new Date(period.end + 'T23:59:59');
+                    
+                    if (date >= startDate && date <= endDate) {
+                        return true;
+                    }
+                }
+                
+                return false;
+            }
+            
+            // Configuration des datepickers
+            const startDatePicker = flatpickr('#negotiation_form_startDate', {
+                dateFormat: 'Y-m-d',
+                minDate: 'today',
+                disable: [isDateBooked],
+                onChange: function(selectedDates, dateStr) {
+                    if (selectedDates.length > 0) {
+                        // Mettre à jour la date minimale du datepicker de fin
+                        const nextDay = new Date(selectedDates[0]);
+                        nextDay.setDate(nextDay.getDate() + 1);
+                        endDatePicker.set('minDate', nextDay);
+                        
+                        // Si la date de fin est antérieure à la nouvelle date de début, la mettre à jour
+                        if (endDatePicker.selectedDates.length > 0 && endDatePicker.selectedDates[0] <= selectedDates[0]) {
+                            endDatePicker.setDate(nextDay);
+                        }
+                    }
+                }
+            });
+            
+            const endDatePicker = flatpickr('#negotiation_form_endDate', {
+                dateFormat: 'Y-m-d',
+                minDate: startDatePicker.selectedDates.length > 0 ? 
+                    new Date(startDatePicker.selectedDates[0].getTime() + 86400000) : // +1 jour en millisecondes
+                    new Date(new Date().getTime() + 86400000), // aujourd'hui + 1 jour
+                disable: [isDateBooked]
+            });
+            
+            // Ajouter des styles CSS pour les dates désactivées
+            const style = document.createElement('style');
+            style.textContent = `
+                .flatpickr-day.flatpickr-disabled, 
+                .flatpickr-day.flatpickr-disabled:hover {
+                    background-color: #ffcccc !important;
+                    color: #999 !important;
+                    text-decoration: line-through;
+                    cursor: not-allowed !important;
+                    position: relative;
+                }
+                
+                .flatpickr-day.flatpickr-disabled:hover::after {
+                    content: 'Réservé';
+                    position: absolute;
+                    bottom: -20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: #333;
+                    color: white;
+                    padding: 2px 5px;
+                    border-radius: 3px;
+                    font-size: 10px;
+                    z-index: 100;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            const priceInput = document.getElementById('price-input');
+            const discountBadge = document.getElementById('discount-badge');
+            const basePrice = {{ roomType.basePrice }};
+            const autoAcceptThreshold = {{ autoAcceptThreshold }};
+            const autoRejectThreshold = {{ autoRejectThreshold }};
+            
+            function updateDiscount() {
+                const proposedPrice = parseFloat(priceInput.value.replace(',', '.'));
+                if (!isNaN(proposedPrice) && proposedPrice > 0) {
+                    const discountPercentage = 100 - (proposedPrice * 100 / basePrice);
+                    discountBadge.textContent = `-${discountPercentage.toFixed(1)}%`;
+                    discountBadge.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-yellow-100', 'text-yellow-800', 'bg-red-100', 'text-red-800');
+                
+                if (discountPercentage <= autoAcceptThreshold) {
+                    discountBadge.classList.add('bg-green-100', 'text-green-800');
+                } else if (discountPercentage >= autoRejectThreshold) {
+                    discountBadge.classList.add('bg-red-100', 'text-red-800');
+                } else {
+                    discountBadge.classList.add('bg-yellow-100', 'text-yellow-800');
+                }
+                
+                discountBadge.classList.remove('hidden');
+            } else {
+                discountBadge.classList.add('hidden');
+            }
+        }
+        
+        priceInput.addEventListener('input', updateDiscount);
+        priceInput.addEventListener('change', updateDiscount);
+        
+        // Initial update
+        updateDiscount();
+    });
+</script>
+{% endblock %}

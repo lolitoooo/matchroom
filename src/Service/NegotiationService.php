@@ -18,15 +18,15 @@ class NegotiationService
     private EntityManagerInterface $entityManager;
     private NotificationRepository $notificationRepository;
     private NegotiationRepository $negotiationRepository;
-    private HubInterface $hub;
-    private EmailService $emailService;
+    private ?HubInterface $hub = null;
+    private ?EmailService $emailService = null;
 
     public function __construct(
         EntityManagerInterface $entityManager,
         NotificationRepository $notificationRepository,
         NegotiationRepository $negotiationRepository,
-        HubInterface $hub,
-        EmailService $emailService
+        ?HubInterface $hub = null,
+        ?EmailService $emailService = null
     ) {
         $this->entityManager = $entityManager;
         $this->notificationRepository = $notificationRepository;
@@ -62,6 +62,10 @@ class NegotiationService
      */
     public function processNegotiation(Negotiation $negotiation): void
     {
+        // S'assurer que la négociation est persistée avant de la traiter
+        $this->entityManager->persist($negotiation);
+        $this->entityManager->flush();
+        
         $roomType = $negotiation->getRoomType();
         $hotel = $roomType->getHotel();
         $basePrice = (float) $roomType->getBasePrice();
@@ -79,10 +83,10 @@ class NegotiationService
             // Refus automatique
             $this->rejectNegotiation($negotiation, true);
         } else {
-            // Contre-offre automatique
-            $counterOfferPercentage = ($autoAcceptThreshold + $autoRejectThreshold) / 2;
-            $counterOfferPrice = $basePrice * (1 - $counterOfferPercentage / 100);
-            $this->makeCounterOffer($negotiation, $counterOfferPrice, true);
+            // Mettre la négociation en attente pour que l'hôtelier puisse faire une contre-proposition manuellement
+            $negotiation->setStatus(Negotiation::STATUS_PENDING);
+            $this->entityManager->persist($negotiation);
+            $this->entityManager->flush();
         }
     }
 
@@ -154,18 +158,22 @@ class NegotiationService
         
         $this->notificationRepository->save($notification, true);
         
-        $this->emailService->sendNegotiationNotification($hotelier, $negotiation);
+        if ($this->emailService) {
+            $this->emailService->sendNegotiationNotification($hotelier, $negotiation);
+        }
         
-        $update = new Update(
-            "user/{$hotelier->getId()}/negotiations",
-            json_encode([
-                'type' => 'new_negotiation',
-                'negotiationId' => $negotiation->getId(),
-                'message' => "Nouvelle demande de négociation pour {$negotiation->getRoomType()->getName()}"
-            ])
-        );
-        
-        $this->hub->publish($update);
+        if ($this->hub) {
+            $update = new Update(
+                "user/{$hotelier->getId()}/negotiations",
+                json_encode([
+                    'type' => 'new_negotiation',
+                    'negotiationId' => $negotiation->getId(),
+                    'message' => "Nouvelle demande de négociation pour {$negotiation->getRoomType()->getName()}"
+                ])
+            );
+            
+            $this->hub->publish($update);
+        }
     }
 
     /**
@@ -182,18 +190,22 @@ class NegotiationService
         
         $this->notificationRepository->save($notification, true);
         
-        $this->emailService->sendNegotiationResponseNotification($client, $negotiation);
+        if ($this->emailService) {
+            $this->emailService->sendNegotiationResponseNotification($client, $negotiation);
+        }
         
-        $update = new Update(
-            "user/{$client->getId()}/negotiations",
-            json_encode([
-                'type' => 'negotiation_response',
-                'negotiationId' => $negotiation->getId(),
-                'status' => $negotiation->getStatus(),
-                'message' => $message
-            ])
-        );
-        
-        $this->hub->publish($update);
+        if ($this->hub) {
+            $update = new Update(
+                "user/{$client->getId()}/negotiations",
+                json_encode([
+                    'type' => 'negotiation_response',
+                    'negotiationId' => $negotiation->getId(),
+                    'status' => $negotiation->getStatus(),
+                    'message' => $message
+                ])
+            );
+            
+            $this->hub->publish($update);
+        }
     }
 }

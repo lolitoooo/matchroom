@@ -43,6 +43,9 @@ class Negotiation
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $hotelResponse = null;
+    
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true)]
+    private ?string $counterOfferPrice = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $createdAt = null;
@@ -144,6 +147,18 @@ class Negotiation
     public function setHotelResponse(?string $hotelResponse): static
     {
         $this->hotelResponse = $hotelResponse;
+
+        return $this;
+    }
+    
+    public function getCounterOfferPrice(): ?string
+    {
+        return $this->counterOfferPrice;
+    }
+
+    public function setCounterOfferPrice(?string $counterOfferPrice): static
+    {
+        $this->counterOfferPrice = $counterOfferPrice;
 
         return $this;
     }

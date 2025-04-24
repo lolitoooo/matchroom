@@ -9,10 +9,10 @@ use Symfony\Component\Mime\Email;
 
 class EmailService
 {
-    private MailerInterface $mailer;
+    private ?MailerInterface $mailer = null;
     private string $senderEmail;
 
-    public function __construct(MailerInterface $mailer, string $senderEmail = 'noreply@matchroom.com')
+    public function __construct(?MailerInterface $mailer = null, string $senderEmail = 'noreply@matchroom.com')
     {
         $this->mailer = $mailer;
         $this->senderEmail = $senderEmail;
@@ -100,6 +100,12 @@ class EmailService
      */
     public function sendBookingConfirmation(User $client, Negotiation $negotiation, string $invoicePdfPath): void
     {
+        if (!$this->mailer) {
+            // Logger l'email au lieu de l'envoyer si le mailer n'est pas disponible
+            error_log("Confirmation de réservation qui aurait été envoyée à {$client->getEmail()}");
+            return;
+        }
+        
         $roomType = $negotiation->getRoomType();
         $hotel = $roomType->getHotel();
         
@@ -136,6 +142,12 @@ class EmailService
      */
     private function sendEmail(string $to, string $subject, string $htmlContent): void
     {
+        if (!$this->mailer) {
+            // Logger l'email au lieu de l'envoyer si le mailer n'est pas disponible
+            error_log("Email qui aurait été envoyé à {$to} avec le sujet: {$subject}");
+            return;
+        }
+        
         $email = (new Email())
             ->from($this->senderEmail)
             ->to($to)

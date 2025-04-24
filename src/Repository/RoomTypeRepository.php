@@ -55,4 +55,48 @@ class RoomTypeRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+    
+    /**
+     * Recherche avancée de chambres selon plusieurs critères
+     */
+    public function findBySearchCriteria(?string $destination = null, ?\DateTimeInterface $startDate = null, ?\DateTimeInterface $endDate = null, ?string $roomType = null, ?float $budget = null): array
+    {
+        $qb = $this->createQueryBuilder('r')
+            ->innerJoin('r.hotel', 'h')
+            ->andWhere('r.available = :available')
+            ->setParameter('available', true);
+        
+        // Filtre par destination (ville, région, pays)
+        if ($destination) {
+            $qb->andWhere('h.city LIKE :destination OR h.address LIKE :destination OR h.name LIKE :destination')
+               ->setParameter('destination', '%' . $destination . '%');
+        }
+        
+        // Filtre par type de chambre
+        if ($roomType && $roomType !== '') {
+            $qb->andWhere('r.name LIKE :roomType')
+               ->setParameter('roomType', '%' . $roomType . '%');
+        }
+        
+        // Filtre par budget maximum
+        if ($budget) {
+            $qb->andWhere('r.basePrice <= :budget')
+               ->setParameter('budget', $budget);
+        }
+        
+        // Filtre par disponibilité aux dates spécifiées
+        if ($startDate && $endDate) {
+            // Cette partie nécessiterait une logique plus complexe pour vérifier les disponibilités
+            // en fonction des réservations existantes, mais pour simplifier :
+            $qb->leftJoin('r.negotiations', 'n')
+               ->leftJoin('n.bookings', 'b')
+               ->andWhere('b.id IS NULL OR NOT (b.startDate <= :endDate AND b.endDate >= :startDate)')
+               ->setParameter('startDate', $startDate)
+               ->setParameter('endDate', $endDate);
+        }
+        
+        return $qb->orderBy('r.basePrice', 'ASC')
+                 ->getQuery()
+                 ->getResult();
+    }
 }

@@ -1,0 +1,215 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des négociations - {{ hotel.name }}{% endblock %}
+
+{% block body %}
+    {% include 'partials/_navbar.html.twig' %}
+
+    <div class="container mx-auto px-4 py-8 mb-12">
+        <div class="max-w-6xl mx-auto">
+            <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+                <div class="bg-primary-600 text-white p-4">
+                    <h1 class="text-2xl font-serif font-bold">Gestion des négociations</h1>
+                    <p class="text-primary-100">{{ hotel.name }}</p>
+                </div>
+                
+                <div class="p-6">
+                    <div class="mb-6">
+                        <h2 class="text-xl font-semibold text-primary-700 mb-4">Paramètres de négociation</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-primary-50 p-4 rounded">
+                                <h3 class="font-medium text-primary-700 mb-2">Seuils d'acceptation</h3>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm text-primary-600">Acceptation auto</span>
+                                    <span class="font-semibold">≤ {{ hotel.autoAcceptThreshold }}%</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-primary-600">Refus auto</span>
+                                    <span class="font-semibold">≥ {{ hotel.autoRejectThreshold }}%</span>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-primary-50 p-4 rounded">
+                                <h3 class="font-medium text-primary-700 mb-2">Délais de réponse</h3>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm text-primary-600">Hôtelier</span>
+                                    <span class="font-semibold">{{ hotel.responseTimeHours }} heures</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-primary-600">Client</span>
+                                    <span class="font-semibold">{{ hotel.clientResponseTimeHours }} heures</span>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-primary-50 p-4 rounded">
+                                <h3 class="font-medium text-primary-700 mb-2">Période de blocage</h3>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-primary-600">En cas de refus</span>
+                                    <span class="font-semibold">{{ hotel.blockingPeriodHours }} heures</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if negotiations|length > 0 %}
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client / Chambre</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dates</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prix proposé</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% for negotiation in negotiations %}
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center">
+                                                    <div class="ml-4">
+                                                        <div class="text-sm font-medium text-gray-900">{{ negotiation.client.email }}</div>
+                                                        <div class="text-sm text-gray-500">{{ negotiation.roomType.name }}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900">{{ negotiation.startDate|date('d/m/Y') }}</div>
+                                                <div class="text-sm text-gray-500">au {{ negotiation.endDate|date('d/m/Y') }}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900">{{ negotiation.proposedPrice|number_format(2, ',', ' ') }} €</div>
+                                                {% set discount = 100 - (negotiation.proposedPrice * 100 / negotiation.roomType.basePrice) %}
+                                                <div class="text-xs px-2 py-1 rounded-full {% if discount > 0 %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %} inline-block">
+                                                    {% if discount > 0 %}-{% else %}+{% endif %}{{ discount|abs|number_format(1, ',', ' ') }}%
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                {% if negotiation.status == 'pending' %}
+                                                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                        En attente
+                                                    </span>
+                                                {% elseif negotiation.status == 'accepted' %}
+                                                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                        Acceptée
+                                                    </span>
+                                                {% elseif negotiation.status == 'rejected' %}
+                                                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                                        Refusée
+                                                    </span>
+                                                {% elseif negotiation.status == 'counter_offer' %}
+                                                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                                        Contre-offre
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {{ negotiation.createdAt|date('d/m/Y H:i') }}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                {% if negotiation.status == 'pending' %}
+                                                    <div class="flex space-x-2">
+                                                        <a href="{{ path('app_negotiation_respond', {'id': negotiation.id, 'action': 'accept'}) }}" 
+                                                           class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm"
+                                                           onclick="return confirm('Êtes-vous sûr de vouloir accepter cette offre ?')">
+                                                            Accepter
+                                                        </a>
+                                                        <a href="{{ path('app_negotiation_counter_offer', {'id': negotiation.id}) }}" 
+                                                           class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                                                            Contre-offre
+                                                        </a>
+                                                        <a href="{{ path('app_negotiation_respond', {'id': negotiation.id, 'action': 'reject'}) }}" 
+                                                           class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+                                                           onclick="return confirm('Êtes-vous sûr de vouloir refuser cette offre ?')">
+                                                            Refuser
+                                                        </a>
+                                                    </div>
+                                                {% elseif negotiation.status == 'counter_offer' %}
+                                                    <div class="flex items-center">
+                                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                                                            <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-yellow-400" fill="currentColor" viewBox="0 0 8 8">
+                                                                <circle cx="4" cy="4" r="3" />
+                                                            </svg>
+                                                            En attente d'une réponse
+                                                        </span>
+                                                    </div>
+                                                {% else %}
+                                                    <span class="text-gray-400">Traitée</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-8">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Aucune négociation en cours</h3>
+                            <p class="text-gray-500">Vous n'avez pas encore reçu d'offres de clients.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-primary-700 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="font-serif text-xl font-bold mb-4">Match Room</h3>
+                    <p class="text-primary-200">Application de mise en relation entre voyageurs et hôteliers.</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Liens rapides</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ path('app_home') }}" class="text-primary-200 hover:text-white">Accueil</a></li>
+                        <li><a href="{{ path('app_map') }}" class="text-primary-200 hover:text-white">Carte</a></li>
+                        <li><a href="#" class="text-primary-200 hover:text-white">Comment ça marche</a></li>
+                        <li><a href="#" class="text-primary-200 hover:text-white">À propos</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Légal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ path('app_legal_terms') }}" class="text-primary-200 hover:text-white">Conditions d'utilisation</a></li>
+                        <li><a href="{{ path('app_legal_privacy') }}" class="text-primary-200 hover:text-white">Politique de confidentialité</a></li>
+                        <li><a href="{{ path('app_legal_notice') }}" class="text-primary-200 hover:text-white">Mentions légales</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Contact</h4>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                            </svg>
+                            <a href="mailto:contact@matchroom.com" class="text-primary-200 hover:text-white">contact@matchroom.com</a>
+                        </li>
+                        <li class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12z" clip-rule="evenodd" />
+                                <path fill-rule="evenodd" d="M10 4a1 1 0 100 2 1 1 0 000-2zm0 7a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            <a href="{{ path('app_contact') }}" class="text-primary-200 hover:text-white">Aide & Support</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-12 pt-8 border-t border-primary-600 text-center text-primary-300">
+                <p>&copy; {{ "now"|date("Y") }} MatchRoom. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+{% endblock %}

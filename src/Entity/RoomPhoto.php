@@ -19,6 +19,9 @@ class RoomPhoto
 
     #[ORM\Column(length: 255)]
     private ?string $url = null;
+    
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $filename = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $alt = null;
@@ -51,6 +54,18 @@ class RoomPhoto
     public function setUrl(string $url): static
     {
         $this->url = $url;
+
+        return $this;
+    }
+    
+    public function getFilename(): ?string
+    {
+        return $this->filename;
+    }
+
+    public function setFilename(?string $filename): static
+    {
+        $this->filename = $filename;
 
         return $this;
     }

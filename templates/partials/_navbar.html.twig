@@ -10,14 +10,25 @@
             <div class="hidden md:flex space-x-8">
                 <a href="{{ path('app_home') }}" class="hover:text-primary-200 transition-colors">Accueil</a>
                 <a href="{{ path('app_map') }}" class="hover:text-primary-200 transition-colors">Carte</a>
+                
                 {% if app.user %}
-                    <a href="#" class="hover:text-primary-200 transition-colors">Rechercher</a>
+                    {% if is_granted('ROLE_HOTEL') %}
+                        <!-- Menu pour les hôteliers -->
+                        <a href="{{ path('app_negotiation_pending') }}" class="hover:text-primary-200 transition-colors">Négociations en attente</a>
+                        <a href="{{ path('app_hotel_negotiations') }}" class="hover:text-primary-200 transition-colors">Toutes les négociations</a>
+                    {% else %}
+                        <!-- Menu pour les clients -->
+                        <a href="{{ path('app_search') }}" class="hover:text-primary-200 transition-colors">Rechercher</a>
+                        <a href="{{ path('app_my_negotiations') }}" class="hover:text-primary-200 transition-colors">Mes négociations</a>
+                    {% endif %}
+                    
                     <a href="{{ path('app_profile') }}" class="hover:text-primary-200 transition-colors">Profil</a>
                     {% if is_granted('ROLE_ADMIN') %}
                         <a href="{{ path('app_admin_dashboard') }}" class="hover:text-primary-200 transition-colors font-bold text-yellow-300">Administration</a>
                     {% endif %}
                     <a href="{{ path('app_logout') }}" class="hover:text-primary-200 transition-colors">Déconnexion</a>
                 {% else %}
+                    <a href="{{ path('app_search') }}" class="hover:text-primary-200 transition-colors">Rechercher</a>
                     <a href="{{ path('app_login') }}" class="hover:text-primary-200 transition-colors">Connexion</a>
                     <a href="{{ path('app_register_client') }}" class="hover:text-primary-200 transition-colors">Inscription</a>
                 {% endif %}
@@ -38,14 +49,25 @@
             <div class="flex flex-col space-y-2 py-2">
                 <a href="{{ path('app_home') }}" class="hover:text-primary-200 transition-colors py-1">Accueil</a>
                 <a href="{{ path('app_map') }}" class="hover:text-primary-200 transition-colors py-1">Carte</a>
+                
                 {% if app.user %}
-                    <a href="#" class="hover:text-primary-200 transition-colors py-1">Rechercher</a>
+                    {% if is_granted('ROLE_HOTEL') %}
+                        <!-- Menu pour les hôteliers -->
+                        <a href="{{ path('app_negotiation_pending') }}" class="hover:text-primary-200 transition-colors py-1">Négociations en attente</a>
+                        <a href="{{ path('app_hotel_negotiations') }}" class="hover:text-primary-200 transition-colors py-1">Toutes les négociations</a>
+                    {% else %}
+                        <!-- Menu pour les clients -->
+                        <a href="{{ path('app_search') }}" class="hover:text-primary-200 transition-colors py-1">Rechercher</a>
+                        <a href="{{ path('app_my_negotiations') }}" class="hover:text-primary-200 transition-colors py-1">Mes négociations</a>
+                    {% endif %}
+                    
                     <a href="{{ path('app_profile') }}" class="hover:text-primary-200 transition-colors py-1">Profil</a>
                     {% if is_granted('ROLE_ADMIN') %}
                         <a href="{{ path('app_admin_dashboard') }}" class="hover:text-primary-200 transition-colors py-1 font-bold text-yellow-300">Administration</a>
                     {% endif %}
                     <a href="{{ path('app_logout') }}" class="hover:text-primary-200 transition-colors py-1">Déconnexion</a>
                 {% else %}
+                    <a href="{{ path('app_search') }}" class="hover:text-primary-200 transition-colors py-1">Rechercher</a>
                     <a href="{{ path('app_login') }}" class="hover:text-primary-200 transition-colors py-1">Connexion</a>
                     <a href="{{ path('app_register_client') }}" class="hover:text-primary-200 transition-colors py-1">Inscription</a>
                 {% endif %}

@@ -1,0 +1,293 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Recherche sur carte - MatchRoom{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <style>
+        #map {
+            height: 600px;
+            width: 100%;
+            border-radius: 0.5rem;
+        }
+        .hotel-popup .hotel-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 0.25rem;
+        }
+        .hotel-popup .hotel-price {
+            color: #4F46E5;
+            font-weight: bold;
+        }
+        .hotel-popup .hotel-link {
+            display: inline-block;
+            margin-top: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            background-color: #4F46E5;
+            color: white;
+            border-radius: 0.25rem;
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+        .draw-control {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background-color: white;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+        }
+    </style>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+{% endblock %}
+
+{% block body %}
+    {% include 'partials/_navbar.html.twig' %}
+
+    <div class="container mx-auto px-4 py-8 mb-12">
+        <div class="max-w-7xl mx-auto">
+            <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+                <div class="bg-primary-600 text-white p-4">
+                    <h1 class="text-2xl font-serif font-bold">Recherche sur carte</h1>
+                    <p class="text-primary-100">Explorez les hôtels disponibles sur la carte</p>
+                </div>
+                
+                <div class="p-6">
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold text-primary-700 mb-4">Modes de recherche</h2>
+                        <div class="flex flex-wrap gap-4">
+                            <a href="{{ path('app_search') }}" class="px-4 py-2 bg-white border border-primary-300 text-primary-700 rounded-md flex items-center hover:bg-primary-50">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                                </svg>
+                                Recherche textuelle
+                            </a>
+                            <a href="{{ path('app_search_swipe') }}" class="px-4 py-2 bg-white border border-primary-300 text-primary-700 rounded-md flex items-center hover:bg-primary-50">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                </svg>
+                                Recherche par swipes
+                            </a>
+                            <a href="{{ path('app_search_map') }}" class="px-4 py-2 bg-primary-500 text-white rounded-md flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M12 1.586l-4 4v12.828l4-4V1.586zM3.707 3.293A1 1 0 002 4v10a1 1 0 00.293.707L6 18.414V5.586L3.707 3.293zM17.707 5.293L14 1.586v12.828l2.293 2.293A1 1 0 0018 16V6a1 1 0 00-.293-.707z" clip-rule="evenodd" />
+                                </svg>
+                                Recherche sur carte
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="flex flex-wrap gap-4 mb-4">
+                            <div class="relative">
+                                <input type="text" id="search-location" placeholder="Rechercher un lieu..." 
+                                    class="w-full md:w-64 rounded-md border-gray-300 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50">
+                                <button id="search-button" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-primary-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            <div>
+                                <button id="toggle-draw" class="px-4 py-2 bg-white border border-primary-300 text-primary-700 rounded-md flex items-center hover:bg-primary-50">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd" />
+                                        <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                                    </svg>
+                                    Dessiner une zone
+                                </button>
+                            </div>
+                            
+                            <div>
+                                <button id="clear-draw" class="px-4 py-2 bg-white border border-red-300 text-red-700 rounded-md flex items-center hover:bg-red-50">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                    </svg>
+                                    Effacer
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="map" class="shadow-lg"></div>
+                    </div>
+                    
+                    <div id="results-container" class="mt-8 hidden">
+                        <h2 class="text-xl font-semibold text-primary-700 mb-4">Hôtels dans la zone sélectionnée</h2>
+                        
+                        <div id="hotel-results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Les résultats seront insérés ici par JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialiser la carte
+            const map = L.map('map').setView([46.603354, 1.888334], 6); // Centre sur la France
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            // Charger les hôtels initiaux
+            const hotels = {{ hotels|json_encode|raw }};
+            const markers = [];
+            
+            // Ajouter les marqueurs pour chaque hôtel
+            hotels.forEach(hotel => {
+                if (hotel.latitude && hotel.longitude) {
+                    const marker = L.marker([hotel.latitude, hotel.longitude]).addTo(map);
+                    
+                    // Créer le contenu du popup
+                    const popupContent = `
+                        <div class="hotel-popup">
+                            <div class="hotel-name">${hotel.name}</div>
+                            <div class="hotel-price">À partir de ${hotel.minPrice ? hotel.minPrice.toFixed(2) + ' €' : 'N/A'}</div>
+                            <a href="/hotel/${hotel.id}" class="hotel-link">Voir l'hôtel</a>
+                        </div>
+                    `;
+                    
+                    marker.bindPopup(popupContent);
+                    markers.push(marker);
+                }
+            });
+            
+            // Fonctionnalité de dessin
+            let drawingMode = false;
+            let polygon = null;
+            let polyline = null;
+            let points = [];
+            
+            document.getElementById('toggle-draw').addEventListener('click', function() {
+                drawingMode = !drawingMode;
+                this.classList.toggle('bg-primary-500');
+                this.classList.toggle('text-white');
+                this.classList.toggle('bg-white');
+                this.classList.toggle('text-primary-700');
+                
+                if (drawingMode) {
+                    map.getContainer().style.cursor = 'crosshair';
+                } else {
+                    map.getContainer().style.cursor = '';
+                }
+            });
+            
+            document.getElementById('clear-draw').addEventListener('click', function() {
+                if (polygon) {
+                    map.removeLayer(polygon);
+                    polygon = null;
+                }
+                
+                if (polyline) {
+                    map.removeLayer(polyline);
+                    polyline = null;
+                }
+                
+                points = [];
+                document.getElementById('results-container').classList.add('hidden');
+            });
+            
+            map.on('click', function(e) {
+                if (!drawingMode) return;
+                
+                points.push([e.latlng.lat, e.latlng.lng]);
+                
+                if (points.length === 1) {
+                    polyline = L.polyline([e.latlng], {color: '#4F46E5'}).addTo(map);
+                } else {
+                    polyline.addLatLng(e.latlng);
+                }
+                
+                if (points.length >= 3) {
+                    if (polygon) {
+                        map.removeLayer(polygon);
+                    }
+                    
+                    polygon = L.polygon(points, {color: '#4F46E5'}).addTo(map);
+                    
+                    // Envoyer la requête pour trouver les hôtels dans le polygone
+                    fetch('{{ path('app_api_hotels_draw') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(points)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        updateHotelResults(data);
+                    });
+                }
+            });
+            
+            // Mise à jour des résultats d'hôtels
+            function updateHotelResults(hotels) {
+                const container = document.getElementById('hotel-results');
+                container.innerHTML = '';
+                
+                if (hotels.length === 0) {
+                    container.innerHTML = '<div class="col-span-full text-center py-8"><p class="text-gray-500">Aucun hôtel trouvé dans cette zone.</p></div>';
+                } else {
+                    hotels.forEach(hotel => {
+                        const hotelCard = document.createElement('div');
+                        hotelCard.className = 'bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden';
+                        hotelCard.innerHTML = `
+                            <div class="p-4">
+                                <h3 class="text-lg font-semibold text-primary-700">${hotel.name}</h3>
+                                <div class="flex justify-between items-center mt-2">
+                                    <div class="text-primary-600 font-bold">
+                                        À partir de ${hotel.minPrice ? hotel.minPrice.toFixed(2) + ' €' : 'N/A'}
+                                    </div>
+                                    <a href="/hotel/${hotel.id}" class="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                        Voir l'hôtel
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                        
+                        container.appendChild(hotelCard);
+                    });
+                }
+                
+                document.getElementById('results-container').classList.remove('hidden');
+            }
+            
+            // Recherche de lieu
+            document.getElementById('search-button').addEventListener('click', function() {
+                const query = document.getElementById('search-location').value;
+                if (!query) return;
+                
+                fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length > 0) {
+                            const location = data[0];
+                            map.setView([location.lat, location.lon], 12);
+                        }
+                    });
+            });
+            
+            // Mise à jour des hôtels lors du déplacement de la carte
+            map.on('moveend', function() {
+                const bounds = map.getBounds();
+                
+                fetch(`{{ path('app_api_hotels') }}?north=${bounds.getNorth()}&south=${bounds.getSouth()}&east=${bounds.getEast()}&west=${bounds.getWest()}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Mettre à jour les marqueurs si nécessaire
+                    });
+            });
+        });
+    </script>
+{% endblock %}

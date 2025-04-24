@@ -25,6 +25,9 @@ class Hotel
 
     #[ORM\Column(length: 255)]
     private ?string $address = null;
+    
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $city = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 7)]
     private ?string $latitude = null;
@@ -39,7 +42,13 @@ class Hotel
     private array $amenities = [];
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
-    private array $negotiationRules = [];
+    private array $negotiationRules = [
+        'autoAcceptThreshold' => 20, // Acceptation automatique si réduction ≤ 20%
+        'autoRejectThreshold' => 50, // Refus automatique si réduction ≥ 50%
+        'responseTimeHours' => 3,    // Délai de réponse pour l'hôtelier (en heures)
+        'clientResponseTimeHours' => 24, // Délai de réponse pour le client (en heures)
+        'blockingPeriodHours' => 24  // Période de blocage en cas de refus (en heures)
+    ];
 
     #[ORM\OneToMany(mappedBy: 'hotel', targetEntity: RoomType::class, orphanRemoval: true)]
     private Collection $roomTypes;
@@ -86,6 +95,18 @@ class Hotel
     public function setAddress(string $address): static
     {
         $this->address = $address;
+
+        return $this;
+    }
+    
+    public function getCity(): ?string
+    {
+        return $this->city;
+    }
+
+    public function setCity(?string $city): static
+    {
+        $this->city = $city;
 
         return $this;
     }
@@ -147,6 +168,61 @@ class Hotel
     {
         $this->negotiationRules = $negotiationRules;
 
+        return $this;
+    }
+    
+    public function getAutoAcceptThreshold(): int
+    {
+        return $this->negotiationRules['autoAcceptThreshold'] ?? 20;
+    }
+    
+    public function setAutoAcceptThreshold(int $threshold): static
+    {
+        $this->negotiationRules['autoAcceptThreshold'] = $threshold;
+        return $this;
+    }
+    
+    public function getAutoRejectThreshold(): int
+    {
+        return $this->negotiationRules['autoRejectThreshold'] ?? 50;
+    }
+    
+    public function setAutoRejectThreshold(int $threshold): static
+    {
+        $this->negotiationRules['autoRejectThreshold'] = $threshold;
+        return $this;
+    }
+    
+    public function getResponseTimeHours(): int
+    {
+        return $this->negotiationRules['responseTimeHours'] ?? 3;
+    }
+    
+    public function setResponseTimeHours(int $hours): static
+    {
+        $this->negotiationRules['responseTimeHours'] = $hours;
+        return $this;
+    }
+    
+    public function getClientResponseTimeHours(): int
+    {
+        return $this->negotiationRules['clientResponseTimeHours'] ?? 24;
+    }
+    
+    public function setClientResponseTimeHours(int $hours): static
+    {
+        $this->negotiationRules['clientResponseTimeHours'] = $hours;
+        return $this;
+    }
+    
+    public function getBlockingPeriodHours(): int
+    {
+        return $this->negotiationRules['blockingPeriodHours'] ?? 24;
+    }
+    
+    public function setBlockingPeriodHours(int $hours): static
+    {
+        $this->negotiationRules['blockingPeriodHours'] = $hours;
         return $this;
     }
 

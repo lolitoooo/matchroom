@@ -1,0 +1,254 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Répondre à l'offre - MatchRoom{% endblock %}
+
+{% block body %}
+    {% include 'partials/_navbar.html.twig' %}
+
+    <div class="container mx-auto px-4 py-8 mb-12">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+                <div class="bg-primary-600 text-white p-4">
+                    <h1 class="text-2xl font-serif font-bold">Répondre à l'offre</h1>
+                    <p class="text-primary-100">{{ negotiation.roomType.name }} - {{ negotiation.roomType.hotel.name }}</p>
+                </div>
+                
+                <div class="p-6">
+                    <div class="flex flex-col md:flex-row gap-6 mb-6">
+                        <div class="md:w-1/2">
+                            {% if negotiation.roomType.roomPhotos|length > 0 %}
+                                <img src="{{ negotiation.roomType.roomPhotos is defined and negotiation.roomType.roomPhotos|length > 0 ? asset('uploads/room_photos/' ~ negotiation.roomType.roomPhotos[0].filename) : asset('images/placeholder-room.jpg') }}" 
+                                    alt="{{ negotiation.roomType.name }}" 
+                                    class="w-full h-64 object-cover rounded-lg">
+                            {% else %}
+                                <div class="w-full h-64 bg-primary-100 flex items-center justify-center rounded-lg">
+                                    <span class="text-primary-500">Aucune photo disponible</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="md:w-1/2">
+                            <h2 class="text-xl font-semibold text-primary-700 mb-2">Détails de la demande</h2>
+                            
+                            <div class="grid grid-cols-2 gap-2 mb-4">
+                                <div class="bg-primary-50 p-3 rounded">
+                                    <span class="text-sm text-primary-600">Client</span>
+                                    <p class="font-semibold">{{ negotiation.client.email }}</p>
+                                </div>
+                                <div class="bg-primary-50 p-3 rounded">
+                                    <span class="text-sm text-primary-600">Date de demande</span>
+                                    <p class="font-semibold">{{ negotiation.createdAt|date('d/m/Y H:i') }}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-2 mb-4">
+                                <div class="bg-primary-50 p-3 rounded">
+                                    <span class="text-sm text-primary-600">Arrivée</span>
+                                    <p class="font-semibold">{{ negotiation.startDate|date('d/m/Y') }}</p>
+                                </div>
+                                <div class="bg-primary-50 p-3 rounded">
+                                    <span class="text-sm text-primary-600">Départ</span>
+                                    <p class="font-semibold">{{ negotiation.endDate|date('d/m/Y') }}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-2 mb-4">
+                                <div class="bg-primary-50 p-3 rounded">
+                                    <span class="text-sm text-primary-600">Prix standard</span>
+                                    <p class="font-semibold">{{ negotiation.roomType.basePrice|number_format(2, ',', ' ') }} €</p>
+                                </div>
+                                <div class="bg-primary-50 p-3 rounded">
+                                    <span class="text-sm text-primary-600">Prix proposé</span>
+                                    <p class="font-semibold">{{ negotiation.proposedPrice|number_format(2, ',', ' ') }} €</p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-primary-50 p-3 rounded mb-4">
+                                <span class="text-sm text-primary-600">Réduction</span>
+                                <p class="font-semibold">
+                                    {% set discount = 100 - (negotiation.proposedPrice * 100 / negotiation.roomType.basePrice) %}
+                                    {{ discount|number_format(1, ',', ' ') }}%
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-gray-200 pt-6">
+                        <h2 class="text-xl font-semibold text-primary-700 mb-4">Votre réponse</h2>
+                        
+                        <form method="post" class="space-y-6">
+                            <div>
+                                <label for="response" class="block text-sm font-medium text-primary-700 mb-1">Message au client</label>
+                                <textarea id="response" name="response" rows="4" class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50" placeholder="Expliquez votre décision au client..."></textarea>
+                            </div>
+                            
+                            <div class="bg-primary-50 p-4 rounded">
+                                <h3 class="font-medium text-primary-700 mb-4">Options de réponse</h3>
+                                
+                                <div class="space-y-4">
+                                    <div class="flex items-center">
+                                        <input type="radio" id="accept" name="action" value="accept" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300">
+                                        <label for="accept" class="ml-3">
+                                            <span class="block text-sm font-medium text-gray-700">Accepter l'offre</span>
+                                            <span class="block text-xs text-gray-500">Accepter le prix proposé par le client ({{ negotiation.proposedPrice|number_format(2, ',', ' ') }} €)</span>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="flex items-center">
+                                        <input type="radio" id="reject" name="action" value="reject" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300">
+                                        <label for="reject" class="ml-3">
+                                            <span class="block text-sm font-medium text-gray-700">Refuser l'offre</span>
+                                            <span class="block text-xs text-gray-500">Le client sera bloqué pendant {{ negotiation.roomType.hotel.blockingPeriodHours }} heures pour cet hôtel</span>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="flex items-center">
+                                        <input type="radio" id="counter_offer" name="action" value="counter_offer" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300">
+                                        <label for="counter_offer" class="ml-3">
+                                            <span class="block text-sm font-medium text-gray-700">Faire une contre-offre</span>
+                                        </label>
+                                    </div>
+                                    
+                                    <div id="counter_offer_section" class="pl-7 hidden">
+                                        <label for="counter_offer_price" class="block text-sm font-medium text-primary-700 mb-1">Prix proposé (€)</label>
+                                        <div class="relative mt-1 rounded-md shadow-sm max-w-xs">
+                                            <input type="number" step="0.01" min="0" id="counter_offer_price" name="counter_offer_price" class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50" placeholder="0.00">
+                                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                                <span class="text-gray-500 sm:text-sm">€</span>
+                                            </div>
+                                        </div>
+                                        <div id="discount_badge" class="mt-2 hidden px-2 py-1 text-xs font-semibold rounded inline-block"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-end space-x-3">
+                                <a href="{{ path('app_hotel_negotiations') }}" class="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                    Annuler
+                                </a>
+                                <button type="submit" class="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                    Envoyer la réponse
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-primary-700 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="font-serif text-xl font-bold mb-4">Match Room</h3>
+                    <p class="text-primary-200">Application de mise en relation entre voyageurs et hôteliers.</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Liens rapides</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ path('app_home') }}" class="text-primary-200 hover:text-white">Accueil</a></li>
+                        <li><a href="{{ path('app_map') }}" class="text-primary-200 hover:text-white">Carte</a></li>
+                        <li><a href="#" class="text-primary-200 hover:text-white">Comment ça marche</a></li>
+                        <li><a href="#" class="text-primary-200 hover:text-white">À propos</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Légal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ path('app_legal_terms') }}" class="text-primary-200 hover:text-white">Conditions d'utilisation</a></li>
+                        <li><a href="{{ path('app_legal_privacy') }}" class="text-primary-200 hover:text-white">Politique de confidentialité</a></li>
+                        <li><a href="{{ path('app_legal_notice') }}" class="text-primary-200 hover:text-white">Mentions légales</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Contact</h4>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                            </svg>
+                            <a href="mailto:contact@matchroom.com" class="text-primary-200 hover:text-white">contact@matchroom.com</a>
+                        </li>
+                        <li class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12z" clip-rule="evenodd" />
+                                <path fill-rule="evenodd" d="M10 4a1 1 0 100 2 1 1 0 000-2zm0 7a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            <a href="{{ path('app_contact') }}" class="text-primary-200 hover:text-white">Aide & Support</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-12 pt-8 border-t border-primary-600 text-center text-primary-300">
+                <p>&copy; {{ "now"|date("Y") }} MatchRoom. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const counterOfferRadio = document.getElementById('counter_offer');
+        const counterOfferSection = document.getElementById('counter_offer_section');
+        const counterOfferPriceInput = document.getElementById('counter_offer_price');
+        const discountBadge = document.getElementById('discount_badge');
+        const basePrice = {{ negotiation.roomType.basePrice }};
+        const autoAcceptThreshold = {{ negotiation.roomType.hotel.autoAcceptThreshold }};
+        const autoRejectThreshold = {{ negotiation.roomType.hotel.autoRejectThreshold }};
+        
+        // Afficher/masquer la section de contre-offre
+        function toggleCounterOfferSection() {
+            if (counterOfferRadio.checked) {
+                counterOfferSection.classList.remove('hidden');
+            } else {
+                counterOfferSection.classList.add('hidden');
+            }
+        }
+        
+        // Mettre à jour l'affichage de la réduction
+        function updateDiscount() {
+            const proposedPrice = parseFloat(counterOfferPriceInput.value);
+            if (!isNaN(proposedPrice) && proposedPrice > 0) {
+                const discountPercentage = 100 - (proposedPrice * 100 / basePrice);
+                discountBadge.textContent = `-${discountPercentage.toFixed(1)}%`;
+                discountBadge.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-yellow-100', 'text-yellow-800', 'bg-red-100', 'text-red-800');
+                
+                if (discountPercentage <= autoAcceptThreshold) {
+                    discountBadge.classList.add('bg-green-100', 'text-green-800');
+                } else if (discountPercentage >= autoRejectThreshold) {
+                    discountBadge.classList.add('bg-red-100', 'text-red-800');
+                } else {
+                    discountBadge.classList.add('bg-yellow-100', 'text-yellow-800');
+                }
+                
+                discountBadge.classList.remove('hidden');
+            } else {
+                discountBadge.classList.add('hidden');
+            }
+        }
+        
+        // Événements
+        document.querySelectorAll('input[name="action"]').forEach(function(radio) {
+            radio.addEventListener('change', toggleCounterOfferSection);
+        });
+        
+        counterOfferPriceInput.addEventListener('input', updateDiscount);
+        counterOfferPriceInput.addEventListener('change', updateDiscount);
+        
+        // Initialisation
+        toggleCounterOfferSection();
+        
+        // Définir une valeur par défaut pour la contre-offre (moyenne entre le prix de base et le prix proposé)
+        const defaultCounterOffer = (parseFloat(basePrice) + parseFloat({{ negotiation.proposedPrice }})) / 2;
+        counterOfferPriceInput.value = defaultCounterOffer.toFixed(2);
+        updateDiscount();
+    });
+</script>
+{% endblock %}

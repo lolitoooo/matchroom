@@ -5,6 +5,8 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     room_photos_directory: '%kernel.project_dir%/public/uploads/room_photos'
+    stripe_key: '%env(STRIPE_SECRET_KEY)%'
+    stripe_webhook_secret: '%env(STRIPE_WEBHOOK_SECRET)%'
 
 services:
     # default configuration for services in *this* file
@@ -33,3 +35,9 @@ services:
     App\Security\BannedUserChecker:
         tags:
             - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest, priority: 10 }
+            
+    # Configuration du contrôleur Stripe
+    App\Controller\StripeController:
+        arguments:
+            $stripeKey: '%stripe_key%'
+            $webhookSecret: '%stripe_webhook_secret%'

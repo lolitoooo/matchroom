@@ -1,0 +1,325 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Recherche par swipe - MatchRoom{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .swipe-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            height: 600px;
+            margin: 0 auto;
+            perspective: 1000px;
+        }
+        
+        .swipe-card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: all 0.5s ease;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+            overflow: hidden;
+            background: white;
+        }
+        
+        .swipe-card.swiped-left {
+            transform: translateX(-1000px) rotate(-30deg);
+            opacity: 0;
+        }
+        
+        .swipe-card.swiped-right {
+            transform: translateX(1000px) rotate(30deg);
+            opacity: 0;
+        }
+        
+        .swipe-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1.5rem;
+        }
+        
+        .swipe-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+        
+        .swipe-button:hover {
+            transform: scale(1.1);
+        }
+        
+        .swipe-left {
+            background-color: #ff4757;
+            color: white;
+        }
+        
+        .swipe-right {
+            background-color: #4F46E5;
+            color: white;
+        }
+        
+        .room-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            color: white;
+            padding: 1.5rem;
+        }
+        
+        .price-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background-color: #4F46E5;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: bold;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% include 'partials/_navbar.html.twig' %}
+
+    <div class="container mx-auto px-4 py-8 mb-12">
+        <div class="max-w-6xl mx-auto">
+            <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+                <div class="bg-primary-600 text-white p-4">
+                    <h1 class="text-2xl font-serif font-bold">Recherche par swipe</h1>
+                    <p class="text-primary-100">Swipez à droite pour faire une offre, à gauche pour passer</p>
+                </div>
+                
+                <div class="p-6">
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold text-primary-700 mb-4">Modes de recherche</h2>
+                        <div class="flex flex-wrap gap-4">
+                            <a href="{{ path('app_search') }}" class="px-4 py-2 bg-white border border-primary-300 text-primary-700 rounded-md flex items-center hover:bg-primary-50">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                                </svg>
+                                Recherche textuelle
+                            </a>
+                            <a href="{{ path('app_search_swipe') }}" class="px-4 py-2 bg-primary-500 text-white rounded-md flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                </svg>
+                                Recherche par swipes
+                            </a>
+                            <a href="{{ path('app_search_map') }}" class="px-4 py-2 bg-white border border-primary-300 text-primary-700 rounded-md flex items-center hover:bg-primary-50">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M12 1.586l-4 4v12.828l4-4V1.586zM3.707 3.293A1 1 0 002 4v10a1 1 0 00.293.707L6 18.414V5.586L3.707 3.293zM17.707 5.293L14 1.586v12.828l2.293 2.293A1 1 0 0018 16V6a1 1 0 00-.293-.707z" clip-rule="evenodd" />
+                                </svg>
+                                Recherche sur carte
+                            </a>
+                        </div>
+                    </div>
+                    
+                    {% if roomTypes|length > 0 %}
+                        <div id="swipe-container" class="swipe-container">
+                            {% for roomType in roomTypes %}
+                                <div class="swipe-card" data-id="{{ roomType.id }}">
+                                    <div class="h-full">
+                                        {% if roomType.roomPhotos is defined and roomType.roomPhotos|length > 0 %}
+                                            <img src="{{ roomType.roomPhotos[0] is defined ? asset('uploads/room_photos/' ~ roomType.roomPhotos[0].filename) : asset('images/placeholder-room.jpg') }}" 
+                                                alt="{{ roomType.name }}" 
+                                                class="w-full h-full object-cover">
+                                        {% else %}
+                                            <div class="w-full h-full bg-primary-100 flex items-center justify-center">
+                                                <span class="text-primary-500">Aucune photo disponible</span>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <div class="price-badge">
+                                            {{ roomType.basePrice|number_format(2, ',', ' ') }} €
+                                        </div>
+                                        
+                                        <div class="room-info">
+                                            <h3 class="text-xl font-bold mb-1">{{ roomType.name }}</h3>
+                                            <p class="text-sm mb-2">{{ roomType.hotel.name }}</p>
+                                            <div class="flex items-center mb-3">
+                                                <span class="text-yellow-400">★</span>
+                                                <span class="ml-1 text-sm">4.8</span>
+                                            </div>
+                                            <p class="text-sm line-clamp-2">{{ roomType.description }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="swipe-buttons">
+                            <div class="swipe-button swipe-left" id="swipe-left">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </div>
+                            <div class="swipe-button swipe-right" id="swipe-right">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <div id="empty-state" class="empty-state hidden">
+                            <div class="flex flex-col items-center justify-center h-full bg-gray-100 rounded-lg p-8">
+                                <div class="text-center">
+                                    <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <h3 class="mt-2 text-lg font-medium text-gray-900">Fin des chambres disponibles</h3>
+                                    <p class="mt-1 text-sm text-gray-500">Il n'y a plus de chambres à afficher. Essayez de modifier vos critères de recherche.</p>
+                                    <div class="mt-6">
+                                        <a href="{{ path('app_search') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                            Retour à la recherche
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Aucune chambre disponible</h3>
+                            <p class="text-gray-500 mb-6">Il n'y a pas de chambres disponibles pour le moment.</p>
+                            <a href="{{ path('app_search') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                Retour à la recherche
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.swipe-card');
+            const swipeLeftBtn = document.getElementById('swipe-left');
+            const swipeRightBtn = document.getElementById('swipe-right');
+            const emptyState = document.getElementById('empty-state');
+            
+            let currentCardIndex = 0;
+            let startX = 0;
+            let currentX = 0;
+            
+            // Afficher uniquement la première carte
+            if (cards.length > 0) {
+                cards.forEach((card, index) => {
+                    if (index !== 0) {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Fonction pour gérer le swipe
+            function handleSwipe(direction) {
+                if (currentCardIndex >= cards.length) return;
+                
+                const currentCard = cards[currentCardIndex];
+                
+                if (direction === 'left') {
+                    currentCard.classList.add('swiped-left');
+                } else {
+                    currentCard.classList.add('swiped-right');
+                    
+                    // Rediriger vers la page de négociation
+                    const roomTypeId = currentCard.dataset.id;
+                    setTimeout(() => {
+                        window.location.href = '/negotiation/make-offer/' + roomTypeId;
+                    }, 500);
+                    
+                    return;
+                }
+                
+                // Passer à la carte suivante après l'animation
+                setTimeout(() => {
+                    currentCard.style.display = 'none';
+                    currentCardIndex++;
+                    
+                    if (currentCardIndex < cards.length) {
+                        cards[currentCardIndex].style.display = 'block';
+                    } else {
+                        // Afficher l'état vide quand il n'y a plus de cartes
+                        emptyState.classList.remove('hidden');
+                        
+                        if (swipeLeftBtn) swipeLeftBtn.style.display = 'none';
+                        if (swipeRightBtn) swipeRightBtn.style.display = 'none';
+                    }
+                }, 500);
+            }
+            
+            // Événements pour les boutons de swipe
+            if (swipeLeftBtn) {
+                swipeLeftBtn.addEventListener('click', () => {
+                    handleSwipe('left');
+                });
+            }
+            
+            if (swipeRightBtn) {
+                swipeRightBtn.addEventListener('click', () => {
+                    handleSwipe('right');
+                });
+            }
+            
+            // Événements tactiles pour le swipe
+            cards.forEach(card => {
+                card.addEventListener('touchstart', (e) => {
+                    startX = e.touches[0].clientX;
+                });
+                
+                card.addEventListener('touchmove', (e) => {
+                    if (card !== cards[currentCardIndex]) return;
+                    
+                    currentX = e.touches[0].clientX;
+                    const diffX = currentX - startX;
+                    
+                    // Limiter la rotation et le déplacement
+                    const rotation = diffX / 20;
+                    const transform = `translateX(${diffX}px) rotate(${rotation}deg)`;
+                    
+                    card.style.transform = transform;
+                });
+                
+                card.addEventListener('touchend', (e) => {
+                    if (card !== cards[currentCardIndex]) return;
+                    
+                    const diffX = currentX - startX;
+                    
+                    if (Math.abs(diffX) > 100) {
+                        // Swipe suffisamment large pour être compté
+                        if (diffX > 0) {
+                            handleSwipe('right');
+                        } else {
+                            handleSwipe('left');
+                        }
+                    } else {
+                        // Remettre la carte en position initiale
+                        card.style.transform = '';
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

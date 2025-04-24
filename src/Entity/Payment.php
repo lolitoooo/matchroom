@@ -19,7 +19,7 @@ class Payment
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $stripeId = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
@@ -27,6 +27,12 @@ class Payment
 
     #[ORM\Column(length: 20)]
     private ?string $status = self::STATUS_PENDING;
+    
+    #[ORM\Column(length: 50)]
+    private ?string $paymentMethod = null;
+    
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $transactionId = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $createdAt = null;
@@ -100,6 +106,30 @@ class Payment
     public function setCompletedAt(?\DateTimeInterface $completedAt): static
     {
         $this->completedAt = $completedAt;
+
+        return $this;
+    }
+    
+    public function getPaymentMethod(): ?string
+    {
+        return $this->paymentMethod;
+    }
+
+    public function setPaymentMethod(string $paymentMethod): static
+    {
+        $this->paymentMethod = $paymentMethod;
+
+        return $this;
+    }
+    
+    public function getTransactionId(): ?string
+    {
+        return $this->transactionId;
+    }
+
+    public function setTransactionId(?string $transactionId): static
+    {
+        $this->transactionId = $transactionId;
 
         return $this;
     }

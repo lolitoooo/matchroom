@@ -1,0 +1,262 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Statut de la négociation - MatchRoom{% endblock %}
+
+{% block body %}
+    {% include 'partials/_navbar.html.twig' %}
+
+    <div class="container mx-auto px-4 py-8 mb-12">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+                <div class="bg-primary-600 text-white p-4">
+                    <h1 class="text-2xl font-serif font-bold">Statut de votre négociation</h1>
+                    <p class="text-primary-100">{{ negotiation.roomType.hotel.name }} - {{ negotiation.roomType.name }}</p>
+                </div>
+                
+                <div class="p-6">
+                    <div class="flex flex-col md:flex-row gap-6 mb-6">
+                        <div class="md:w-1/2">
+                            {% if negotiation.roomType.roomPhotos|length > 0 %}
+                                <img src="{{ negotiation.roomType.roomPhotos is defined and negotiation.roomType.roomPhotos|length > 0 ? asset('uploads/room_photos/' ~ negotiation.roomType.roomPhotos[0].filename) : asset('images/placeholder-room.jpg') }}" 
+                                    alt="{{ negotiation.roomType.name }}" 
+                                    class="w-full h-64 object-cover rounded-lg">
+                            {% else %}
+                                <div class="w-full h-64 bg-primary-100 flex items-center justify-center rounded-lg">
+                                    <span class="text-primary-500">Aucune photo disponible</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="md:w-1/2">
+                            <h2 class="text-xl font-semibold text-primary-700 mb-2">Détails de la réservation</h2>
+                            
+                            <div class="grid grid-cols-2 gap-2 mb-4">
+                                <div class="bg-primary-50 p-3 rounded">
+                                    <span class="text-sm text-primary-600">Arrivée</span>
+                                    <p class="font-semibold">{{ negotiation.startDate|date('d/m/Y') }}</p>
+                                </div>
+                                <div class="bg-primary-50 p-3 rounded">
+                                    <span class="text-sm text-primary-600">Départ</span>
+                                    <p class="font-semibold">{{ negotiation.endDate|date('d/m/Y') }}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-2 mb-4">
+                                <div class="bg-primary-50 p-3 rounded">
+                                    <span class="text-sm text-primary-600">Prix standard</span>
+                                    <p class="font-semibold">{{ negotiation.roomType.basePrice|number_format(2, ',', ' ') }} €</p>
+                                </div>
+                                <div class="bg-primary-50 p-3 rounded">
+                                    <span class="text-sm text-primary-600">Prix proposé</span>
+                                    <p class="font-semibold">{{ negotiation.proposedPrice|number_format(2, ',', ' ') }} €</p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-primary-50 p-3 rounded mb-4">
+                                <span class="text-sm text-primary-600">Réduction</span>
+                                <p class="font-semibold">
+                                    {% set discount = 100 - (negotiation.proposedPrice * 100 / negotiation.roomType.basePrice) %}
+                                    {{ discount|number_format(1, ',', ' ') }}%
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-gray-200 pt-6">
+                        <h2 class="text-xl font-semibold text-primary-700 mb-4">Statut de la négociation</h2>
+                        
+                        <div class="mb-6">
+                            {% if negotiation.status == 'pending' %}
+                                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <svg class="h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm text-blue-700">
+                                                Votre offre est en attente de réponse de l'hôtelier.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% elseif negotiation.status == 'accepted' %}
+                                <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <svg class="h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm text-green-700">
+                                                Félicitations ! Votre offre a été acceptée.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% elseif negotiation.status == 'rejected' %}
+                                <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm text-red-700">
+                                                Votre offre a été refusée.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% elseif negotiation.status == 'counter_offer' %}
+                                <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm text-yellow-700">
+                                                L'hôtelier vous a fait une contre-offre de <strong>{{ negotiation.proposedPrice|number_format(2, ',', ' ') }} €</strong>.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if app.user == negotiation.client %}
+                                        <div class="mt-4 flex space-x-3">
+                                            <a href="{{ path('app_accept_counter_offer', {'id': negotiation.id}) }}" 
+                                               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                               onclick="return confirm('Êtes-vous sûr de vouloir accepter cette contre-offre ?')">
+                                                Accepter cette offre
+                                            </a>
+                                            <a href="{{ path('app_reject_counter_offer', {'id': negotiation.id}) }}" 
+                                               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                               onclick="return confirm('Êtes-vous sûr de vouloir refuser cette contre-offre ?')">
+                                                Refuser cette offre
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if app.user == negotiation.roomType.hotel.user %}
+                                        <div class="mt-4">
+                                            <p class="text-sm text-yellow-700">
+                                                Vous avez fait une contre-offre au client. En attente de sa réponse.
+                                            </p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if negotiation.hotelResponse %}
+                            <div class="bg-gray-50 p-4 rounded mb-6">
+                                <h3 class="font-medium text-primary-700 mb-2">Message de l'hôtelier :</h3>
+                                <p class="text-gray-700">{{ negotiation.hotelResponse }}</p>
+                            </div>
+                        {% endif %}
+                        
+                        {% if negotiation.status == 'accepted' %}
+                            <div class="bg-green-50 p-6 rounded mb-6">
+                                <h3 class="font-semibold text-green-800 mb-4">Procéder au paiement</h3>
+                                <p class="text-green-700 mb-4">Votre offre a été acceptée. Vous pouvez maintenant procéder au paiement pour confirmer votre réservation.</p>
+                                
+                                <div class="flex justify-between items-center p-4 bg-white rounded shadow-sm mb-4">
+                                    <div>
+                                        <p class="font-medium">Montant total</p>
+                                        {% set nights = date(negotiation.endDate).diff(date(negotiation.startDate)).days %}
+                                        <p class="text-sm text-gray-500">{{ nights }} nuit(s) × {{ negotiation.proposedPrice|number_format(2, ',', ' ') }} €</p>
+                                    </div>
+                                    <div class="text-2xl font-bold">
+                                        {{ (negotiation.proposedPrice * nights)|number_format(2, ',', ' ') }} €
+                                    </div>
+                                </div>
+                                
+                                <a href="{{ path('app_stripe_checkout', {'id': negotiation.id}) }}" class="block w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md transition duration-200 text-center">
+                                    Payer maintenant avec Stripe
+                                </a>
+                            </div>
+                        {% elseif negotiation.status == 'counter_offer' %}
+                            <div class="bg-yellow-50 p-6 rounded mb-6">
+                                <h3 class="font-semibold text-yellow-800 mb-4">Répondre à la contre-offre</h3>
+                                <p class="text-yellow-700 mb-4">L'hôtelier vous propose un prix de {{ negotiation.proposedPrice|number_format(2, ',', ' ') }} € par nuit.</p>
+                                
+                                <div class="flex flex-col sm:flex-row gap-4">
+                                    <a href="{{ path('app_accept_counter_offer', {'id': negotiation.id}) }}" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md transition duration-200 text-center">
+                                        Accepter la contre-offre
+                                    </a>
+                                    <a href="{{ path('app_reject_counter_offer', {'id': negotiation.id}) }}" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-md transition duration-200 text-center">
+                                        Refuser la contre-offre
+                                    </a>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mt-6">
+                            <a href="{{ path('app_my_negotiations') }}" class="text-primary-600 hover:text-primary-800 font-medium">
+                                &larr; Retour à mes négociations
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-primary-700 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="font-serif text-xl font-bold mb-4">Match Room</h3>
+                    <p class="text-primary-200">Application de mise en relation entre voyageurs et hôteliers.</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Liens rapides</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ path('app_home') }}" class="text-primary-200 hover:text-white">Accueil</a></li>
+                        <li><a href="{{ path('app_map') }}" class="text-primary-200 hover:text-white">Carte</a></li>
+                        <li><a href="#" class="text-primary-200 hover:text-white">Comment ça marche</a></li>
+                        <li><a href="#" class="text-primary-200 hover:text-white">À propos</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Légal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ path('app_legal_terms') }}" class="text-primary-200 hover:text-white">Conditions d'utilisation</a></li>
+                        <li><a href="{{ path('app_legal_privacy') }}" class="text-primary-200 hover:text-white">Politique de confidentialité</a></li>
+                        <li><a href="{{ path('app_legal_notice') }}" class="text-primary-200 hover:text-white">Mentions légales</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Contact</h4>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                            </svg>
+                            <a href="mailto:contact@matchroom.com" class="text-primary-200 hover:text-white">contact@matchroom.com</a>
+                        </li>
+                        <li class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12z" clip-rule="evenodd" />
+                                <path fill-rule="evenodd" d="M10 4a1 1 0 100 2 1 1 0 000-2zm0 7a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            <a href="{{ path('app_contact') }}" class="text-primary-200 hover:text-white">Aide & Support</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-12 pt-8 border-t border-primary-600 text-center text-primary-300">
+                <p>&copy; {{ "now"|date("Y") }} MatchRoom. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+{% endblock %}
