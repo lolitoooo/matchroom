@@ -1,0 +1,96 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Conditions d'utilisation - MatchRoom{% endblock %}
+
+{% block body %}
+    {% include 'partials/_navbar.html.twig' %}
+
+    <div class="container mx-auto px-4 py-8 mb-12">
+        <div class="max-w-4xl mx-auto bg-white p-6 md:p-8 rounded-lg shadow-md">
+            <h1 class="text-3xl md:text-4xl font-serif font-bold text-primary-500 mb-6">Conditions d'utilisation</h1>
+            
+            <div class="prose prose-primary max-w-none">
+                <p class="text-sm text-gray-500 mb-6">Dernière mise à jour : {{ "now"|date("d/m/Y") }}</p>
+                
+                <h2 class="text-2xl font-serif font-semibold text-primary-400 mt-8 mb-4">1. Acceptation des conditions</h2>
+                <p>En accédant et en utilisant le site MatchRoom, vous acceptez d'être lié par les présentes conditions d'utilisation, toutes les lois et réglementations applicables, et vous acceptez que vous êtes responsable du respect des lois locales applicables. Si vous n'acceptez pas l'une de ces conditions, vous êtes interdit d'utiliser ou d'accéder à ce site.</p>
+                
+                <h2 class="text-2xl font-serif font-semibold text-primary-400 mt-8 mb-4">2. Description du service</h2>
+                <p>MatchRoom est une plateforme de mise en relation entre voyageurs et hôteliers. Notre service permet aux voyageurs de trouver des hébergements adaptés à leurs besoins et aux hôteliers de proposer leurs établissements.</p>
+                <p>Nous ne sommes pas responsables des transactions effectuées entre les utilisateurs de notre plateforme. Nous agissons uniquement en tant qu'intermédiaire facilitant la mise en relation.</p>
+                
+                <h2 class="text-2xl font-serif font-semibold text-primary-400 mt-8 mb-4">3. Comptes utilisateurs</h2>
+                <p>Pour utiliser certaines fonctionnalités de notre service, vous devez créer un compte. Vous êtes responsable de maintenir la confidentialité de votre compte et mot de passe et de restreindre l'accès à votre ordinateur. Vous acceptez d'assumer la responsabilité de toutes les activités qui se produisent sous votre compte ou mot de passe.</p>
+                
+                <h2 class="text-2xl font-serif font-semibold text-primary-400 mt-8 mb-4">4. Contenu utilisateur</h2>
+                <p>En soumettant du contenu sur notre plateforme (textes, images, avis, etc.), vous nous accordez une licence mondiale, non exclusive, gratuite, transférable et pouvant faire l'objet d'une sous-licence pour utiliser, reproduire, distribuer, préparer des œuvres dérivées, afficher et exécuter ce contenu en relation avec les services fournis par MatchRoom.</p>
+                <p>Vous vous engagez à ne pas publier de contenu illégal, diffamatoire, harcelant, menaçant, ou portant atteinte à la vie privée d'autrui.</p>
+                
+                <h2 class="text-2xl font-serif font-semibold text-primary-400 mt-8 mb-4">5. Limitation de responsabilité</h2>
+                <p>MatchRoom ne garantit pas que le site sera disponible à tout moment ou que le service sera ininterrompu. Le site et son contenu sont fournis "tels quels" sans garantie d'aucune sorte, expresse ou implicite.</p>
+                <p>En aucun cas, MatchRoom, ses administrateurs, employés ou agents ne seront tenus responsables de tout dommage direct, indirect, accessoire, spécial ou consécutif résultant de l'utilisation ou de l'incapacité d'utiliser le site.</p>
+                
+                <h2 class="text-2xl font-serif font-semibold text-primary-400 mt-8 mb-4">6. Modifications</h2>
+                <p>MatchRoom se réserve le droit de modifier ces conditions d'utilisation à tout moment. Nous vous informerons des changements importants par email ou via notre site. Votre utilisation continue du site après de telles modifications constitue votre acceptation des nouvelles conditions.</p>
+                
+                <h2 class="text-2xl font-serif font-semibold text-primary-400 mt-8 mb-4">7. Loi applicable</h2>
+                <p>Ces conditions sont régies et interprétées conformément aux lois françaises, et vous vous soumettez irrévocablement à la juridiction exclusive des tribunaux de cette juridiction.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-primary-700 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="font-serif text-xl font-bold mb-4">Match Room</h3>
+                    <p class="text-primary-200">Application de mise en relation entre voyageurs et hôteliers.</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Liens rapides</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ path('app_home') }}" class="text-primary-200 hover:text-white">Accueil</a></li>
+                        <li><a href="#" class="text-primary-200 hover:text-white">Recherche</a></li>
+                        <li><a href="#" class="text-primary-200 hover:text-white">Comment ça marche</a></li>
+                        <li><a href="#" class="text-primary-200 hover:text-white">À propos</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Légal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ path('app_legal_terms') }}" class="text-primary-200 hover:text-white">Conditions d'utilisation</a></li>
+                        <li><a href="{{ path('app_legal_privacy') }}" class="text-primary-200 hover:text-white">Politique de confidentialité</a></li>
+                        <li><a href="{{ path('app_legal_notice') }}" class="text-primary-200 hover:text-white">Mentions légales</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Contact</h4>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                            </svg>
+                            <a href="mailto:contact@matchroom.com" class="text-primary-200 hover:text-white">contact@matchroom.com</a>
+                        </li>
+                        <li class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12z" clip-rule="evenodd" />
+                                <path fill-rule="evenodd" d="M10 4a1 1 0 100 2 1 1 0 000-2zm0 7a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            <a href="#" class="text-primary-200 hover:text-white">Aide & Support</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-12 pt-8 border-t border-primary-600 text-center text-primary-300">
+                <p>&copy; {{ "now"|date("Y") }} MatchRoom. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+{% endblock %}

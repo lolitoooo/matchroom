@@ -1,0 +1,110 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mentions légales - MatchRoom{% endblock %}
+
+{% block body %}
+    {% include 'partials/_navbar.html.twig' %}
+
+    <div class="container mx-auto px-4 py-8 mb-12">
+        <div class="max-w-4xl mx-auto bg-white p-6 md:p-8 rounded-lg shadow-md">
+            <h1 class="text-3xl md:text-4xl font-serif font-bold text-primary-500 mb-6">Mentions légales</h1>
+            
+            <div class="prose prose-primary max-w-none">
+                <p class="text-sm text-gray-500 mb-6">Dernière mise à jour : {{ "now"|date("d/m/Y") }}</p>
+                
+                <h2 class="text-2xl font-serif font-semibold text-primary-400 mt-8 mb-4">1. Éditeur du site</h2>
+                <p><strong>MatchRoom SAS</strong><br>
+                Capital social : 10 000 €<br>
+                Siège social : 123 Avenue des Voyageurs, 75001 Paris, France<br>
+                SIRET : 123 456 789 00012<br>
+                RCS Paris B 123 456 789<br>
+                N° TVA intracommunautaire : FR 12 123456789<br>
+                Directeur de la publication : Jean Dupont</p>
+                
+                <h2 class="text-2xl font-serif font-semibold text-primary-400 mt-8 mb-4">2. Hébergement</h2>
+                <p><strong>OVH SAS</strong><br>
+                2 rue Kellermann<br>
+                59100 Roubaix, France<br>
+                Téléphone : +33 (0)8 99 70 17 61</p>
+                
+                <h2 class="text-2xl font-serif font-semibold text-primary-400 mt-8 mb-4">3. Propriété intellectuelle</h2>
+                <p>L'ensemble du contenu de ce site (structure, textes, logos, images, vidéos, sons, etc.) est la propriété exclusive de MatchRoom ou de ses partenaires. Toute reproduction, représentation, modification, publication, transmission, dénaturation, totale ou partielle du site ou de son contenu, par quelque procédé que ce soit, et sur quelque support que ce soit est interdite sans l'autorisation écrite préalable de MatchRoom.</p>
+                <p>Le non-respect de cette interdiction constitue une contrefaçon pouvant engager la responsabilité civile et pénale du contrefacteur.</p>
+                
+                <h2 class="text-2xl font-serif font-semibold text-primary-400 mt-8 mb-4">4. Liens hypertextes</h2>
+                <p>Le site MatchRoom peut contenir des liens hypertextes vers d'autres sites internet. MatchRoom n'exerce aucun contrôle sur ces sites et n'assume aucune responsabilité quant à leur contenu.</p>
+                <p>La création de liens hypertextes vers le site MatchRoom nécessite une autorisation préalable et écrite de MatchRoom.</p>
+                
+                <h2 class="text-2xl font-serif font-semibold text-primary-400 mt-8 mb-4">5. Protection des données personnelles</h2>
+                <p>Conformément à la loi n°78-17 du 6 janvier 1978 relative à l'informatique, aux fichiers et aux libertés, modifiée par la loi n°2018-493 du 20 juin 2018, et au Règlement Général sur la Protection des Données (RGPD), MatchRoom s'engage à respecter la confidentialité des données personnelles collectées sur son site.</p>
+                <p>Pour plus d'informations sur la façon dont nous traitons vos données, veuillez consulter notre <a href="{{ path('app_legal_privacy') }}" class="text-primary-500 hover:underline">Politique de confidentialité</a>.</p>
+                
+                <h2 class="text-2xl font-serif font-semibold text-primary-400 mt-8 mb-4">6. Droit applicable et juridiction compétente</h2>
+                <p>Les présentes mentions légales sont soumises au droit français. En cas de litige, les tribunaux français seront seuls compétents.</p>
+                
+                <h2 class="text-2xl font-serif font-semibold text-primary-400 mt-8 mb-4">7. Contact</h2>
+                <p>Pour toute question relative à ces mentions légales, vous pouvez nous contacter via notre <a href="{{ path('app_contact') }}" class="text-primary-500 hover:underline">page de contact</a>.</p>
+                
+                <h2 class="text-2xl font-serif font-semibold text-primary-400 mt-8 mb-4">8. Crédits</h2>
+                <p>Conception et développement : MatchRoom<br>
+                Photographies : Adobe Stock, Unsplash, Pexels<br>
+                Icônes : Font Awesome</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-primary-700 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="font-serif text-xl font-bold mb-4">Match Room</h3>
+                    <p class="text-primary-200">Application de mise en relation entre voyageurs et hôteliers.</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Liens rapides</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ path('app_home') }}" class="text-primary-200 hover:text-white">Accueil</a></li>
+                        <li><a href="#" class="text-primary-200 hover:text-white">Recherche</a></li>
+                        <li><a href="#" class="text-primary-200 hover:text-white">Comment ça marche</a></li>
+                        <li><a href="#" class="text-primary-200 hover:text-white">À propos</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Légal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ path('app_legal_terms') }}" class="text-primary-200 hover:text-white">Conditions d'utilisation</a></li>
+                        <li><a href="{{ path('app_legal_privacy') }}" class="text-primary-200 hover:text-white">Politique de confidentialité</a></li>
+                        <li><a href="{{ path('app_legal_notice') }}" class="text-primary-200 hover:text-white">Mentions légales</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Contact</h4>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                            </svg>
+                            <a href="mailto:contact@matchroom.com" class="text-primary-200 hover:text-white">contact@matchroom.com</a>
+                        </li>
+                        <li class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12z" clip-rule="evenodd" />
+                                <path fill-rule="evenodd" d="M10 4a1 1 0 100 2 1 1 0 000-2zm0 7a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            <a href="#" class="text-primary-200 hover:text-white">Aide & Support</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-12 pt-8 border-t border-primary-600 text-center text-primary-300">
+                <p>&copy; {{ "now"|date("Y") }} MatchRoom. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+{% endblock %}

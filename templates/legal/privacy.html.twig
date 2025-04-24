@@ -1,0 +1,126 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Politique de confidentialité - MatchRoom{% endblock %}
+
+{% block body %}
+    {% include 'partials/_navbar.html.twig' %}
+
+    <div class="container mx-auto px-4 py-8 mb-12">
+        <div class="max-w-4xl mx-auto bg-white p-6 md:p-8 rounded-lg shadow-md">
+            <h1 class="text-3xl md:text-4xl font-serif font-bold text-primary-500 mb-6">Politique de confidentialité</h1>
+            
+            <div class="prose prose-primary max-w-none">
+                <p class="text-sm text-gray-500 mb-6">Dernière mise à jour : {{ "now"|date("d/m/Y") }}</p>
+                
+                <p class="mb-6">Chez MatchRoom, nous accordons une grande importance à la protection de vos données personnelles. Cette politique de confidentialité explique comment nous collectons, utilisons, partageons et protégeons vos informations lorsque vous utilisez notre service.</p>
+                
+                <h2 class="text-2xl font-serif font-semibold text-primary-400 mt-8 mb-4">1. Collecte des données</h2>
+                <p>Nous collectons les informations suivantes :</p>
+                <ul class="list-disc pl-6 mb-4">
+                    <li>Informations d'identification : nom, prénom, adresse email, numéro de téléphone</li>
+                    <li>Informations de profil : photo de profil, préférences de voyage ou détails d'établissement</li>
+                    <li>Données de connexion : adresse IP, type de navigateur, pages visitées, temps passé sur le site</li>
+                    <li>Informations de paiement : nous ne stockons pas directement vos informations de paiement complètes</li>
+                </ul>
+                
+                <h2 class="text-2xl font-serif font-semibold text-primary-400 mt-8 mb-4">2. Utilisation des données</h2>
+                <p>Nous utilisons vos données pour :</p>
+                <ul class="list-disc pl-6 mb-4">
+                    <li>Fournir, maintenir et améliorer notre service</li>
+                    <li>Traiter les transactions et envoyer les notifications associées</li>
+                    <li>Vous envoyer des informations techniques, des mises à jour et des messages de support</li>
+                    <li>Communiquer sur les nouveaux services, offres spéciales et informations (vous pouvez vous désabonner à tout moment)</li>
+                    <li>Prévenir les activités frauduleuses et améliorer la sécurité de notre plateforme</li>
+                </ul>
+                
+                <h2 class="text-2xl font-serif font-semibold text-primary-400 mt-8 mb-4">3. Partage des données</h2>
+                <p>Nous ne vendons pas vos données personnelles à des tiers. Nous pouvons partager vos informations dans les circonstances suivantes :</p>
+                <ul class="list-disc pl-6 mb-4">
+                    <li>Avec les autres utilisateurs de la plateforme dans le cadre du service de mise en relation</li>
+                    <li>Avec nos prestataires de services qui nous aident à fournir notre service (hébergement, paiement, etc.)</li>
+                    <li>Si requis par la loi ou pour protéger nos droits</li>
+                    <li>En cas de fusion, vente ou transfert d'actifs, vos données peuvent être transférées à la nouvelle entité</li>
+                </ul>
+                
+                <h2 class="text-2xl font-serif font-semibold text-primary-400 mt-8 mb-4">4. Cookies et technologies similaires</h2>
+                <p>Nous utilisons des cookies et technologies similaires pour améliorer votre expérience, analyser l'utilisation du site et personnaliser le contenu. Vous pouvez configurer votre navigateur pour refuser tous les cookies ou vous alerter lorsqu'un cookie est envoyé, mais certaines fonctionnalités du site pourraient ne pas fonctionner correctement.</p>
+                
+                <h2 class="text-2xl font-serif font-semibold text-primary-400 mt-8 mb-4">5. Sécurité des données</h2>
+                <p>Nous mettons en œuvre des mesures de sécurité appropriées pour protéger vos données contre l'accès non autorisé, l'altération, la divulgation ou la destruction. Cependant, aucune méthode de transmission sur Internet ou de stockage électronique n'est totalement sécurisée, et nous ne pouvons garantir une sécurité absolue.</p>
+                
+                <h2 class="text-2xl font-serif font-semibold text-primary-400 mt-8 mb-4">6. Vos droits</h2>
+                <p>Conformément au Règlement Général sur la Protection des Données (RGPD), vous disposez des droits suivants :</p>
+                <ul class="list-disc pl-6 mb-4">
+                    <li>Droit d'accès à vos données personnelles</li>
+                    <li>Droit de rectification des données inexactes</li>
+                    <li>Droit à l'effacement de vos données</li>
+                    <li>Droit à la limitation du traitement</li>
+                    <li>Droit à la portabilité des données</li>
+                    <li>Droit d'opposition au traitement</li>
+                </ul>
+                <p>Pour exercer ces droits, contactez-nous via notre page de contact.</p>
+                
+                <h2 class="text-2xl font-serif font-semibold text-primary-400 mt-8 mb-4">7. Modifications de la politique de confidentialité</h2>
+                <p>Nous pouvons mettre à jour cette politique de confidentialité périodiquement. Nous vous informerons de tout changement important par email ou via notre site. Nous vous encourageons à consulter régulièrement cette page pour rester informé des dernières mises à jour.</p>
+                
+                <h2 class="text-2xl font-serif font-semibold text-primary-400 mt-8 mb-4">8. Contact</h2>
+                <p>Si vous avez des questions concernant cette politique de confidentialité, veuillez nous contacter via notre <a href="{{ path('app_contact') }}" class="text-primary-500 hover:underline">page de contact</a>.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-primary-700 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="font-serif text-xl font-bold mb-4">Match Room</h3>
+                    <p class="text-primary-200">Application de mise en relation entre voyageurs et hôteliers.</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Liens rapides</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ path('app_home') }}" class="text-primary-200 hover:text-white">Accueil</a></li>
+                        <li><a href="#" class="text-primary-200 hover:text-white">Recherche</a></li>
+                        <li><a href="#" class="text-primary-200 hover:text-white">Comment ça marche</a></li>
+                        <li><a href="#" class="text-primary-200 hover:text-white">À propos</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Légal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ path('app_legal_terms') }}" class="text-primary-200 hover:text-white">Conditions d'utilisation</a></li>
+                        <li><a href="{{ path('app_legal_privacy') }}" class="text-primary-200 hover:text-white">Politique de confidentialité</a></li>
+                        <li><a href="{{ path('app_legal_notice') }}" class="text-primary-200 hover:text-white">Mentions légales</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Contact</h4>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                            </svg>
+                            <a href="mailto:contact@matchroom.com" class="text-primary-200 hover:text-white">contact@matchroom.com</a>
+                        </li>
+                        <li class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12z" clip-rule="evenodd" />
+                                <path fill-rule="evenodd" d="M10 4a1 1 0 100 2 1 1 0 000-2zm0 7a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            <a href="#" class="text-primary-200 hover:text-white">Aide & Support</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-12 pt-8 border-t border-primary-600 text-center text-primary-300">
+                <p>&copy; {{ "now"|date("Y") }} MatchRoom. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+{% endblock %}
