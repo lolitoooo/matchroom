@@ -22,7 +22,7 @@ class AppFixtures extends Fixture
         // Hôtelier
         $hotelier = new User();
         $hotelier->setEmail('hotelier@matchroom.com');
-        $hotelier->setRoles(['ROLE_HOTELIER']);
+        $hotelier->setRoles(['ROLE_HOTEL']);
         $hotelier->setFirstname('Julie');
         $hotelier->setName('Durand');
         $hotelier->setPassword($this->hasher->hashPassword($hotelier, 'password'));

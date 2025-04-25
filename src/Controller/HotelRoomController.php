@@ -9,6 +9,8 @@ use App\Form\RoomPhotoType;
 use App\Form\RoomType as RoomTypeForm;
 use App\Repository\HotelRepository;
 use App\Repository\RoomTypeRepository;
+use App\Repository\NegotiationRepository;
+use App\Entity\Negotiation;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -602,4 +604,42 @@ class HotelRoomController extends AbstractController
 
         return $this->redirectToRoute('app_hotel_room_edit', ['id' => $roomType->getId()]);
     }
+
+    #[Route('/negotiations', name: 'app_hotel_negotiations')]
+    public function hotelNegotiations(
+        HotelRepository $hotelRepo,
+        RoomTypeRepository $roomRepo,
+        NegotiationRepository $negotiationRepo
+    ): Response {
+        $user = $this->getUser();
+        $hotel = $hotelRepo->findOneBy(['user' => $user]);
+
+        if (!$hotel) {
+            throw $this->createNotFoundException('Aucun hôtel associé à cet utilisateur.');
+        }
+
+        $roomTypes = $roomRepo->findBy(['hotel' => $hotel]);
+
+        // Préparation des négociations par roomId
+        $groupedNegotiations = [];
+        foreach ($roomTypes as $room) {
+            $negotiations = $negotiationRepo->findBy([
+                'roomType' => $room,
+                'status' => Negotiation::STATUS_PENDING
+            ], ['createdAt' => 'DESC']);
+
+            $groupedNegotiations[$room->getId()] = [
+                'room' => $room,
+                'negotiations' => $negotiations
+            ];
+        }
+
+        return $this->render('hotel_room/negotiations.html.twig', [
+            'roomTypes' => $roomTypes,
+            'groupedNegotiations' => $groupedNegotiations,
+        ]);
+    }
+
+
+
 }

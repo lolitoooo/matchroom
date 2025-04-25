@@ -106,6 +106,16 @@ class NegotiationService
         
         // Notifier le client
         $this->notifyClient($negotiation, "Votre offre pour {$negotiation->getRoomType()->getName()} a été acceptée!");
+        $this->hub->publish(new Update(
+            "hotel/{$negotiation->getRoomType()->getHotel()->getUser()->getId()}/negotiations",
+            json_encode([
+                'type' => 'hotel_response',
+                'negotiationId' => $negotiation->getId(),
+                'status' => $negotiation->getStatus(),
+                'message' => $negotiation->getHotelResponse(),
+                'respondedAt' => $negotiation->getRespondedAt()->format('Y-m-d H:i'),
+            ])
+        ));        
     }
 
     /**
@@ -123,6 +133,16 @@ class NegotiationService
         $this->entityManager->flush();
         
         $this->notifyClient($negotiation, "Votre offre pour {$negotiation->getRoomType()->getName()} a été refusée.");
+        $this->hub->publish(new Update(
+            "hotel/{$negotiation->getRoomType()->getHotel()->getUser()->getId()}/negotiations",
+            json_encode([
+                'type' => 'hotel_response',
+                'negotiationId' => $negotiation->getId(),
+                'status' => $negotiation->getStatus(),
+                'message' => $negotiation->getHotelResponse(),
+                'respondedAt' => $negotiation->getRespondedAt()->format('Y-m-d H:i'),
+            ])
+        ));        
     }
 
     /**
@@ -141,6 +161,16 @@ class NegotiationService
         $this->entityManager->flush();
         
         $this->notifyClient($negotiation, "L'hôtel vous a fait une contre-offre pour {$negotiation->getRoomType()->getName()}.");
+        $this->hub->publish(new Update(
+            "hotel/{$negotiation->getRoomType()->getHotel()->getUser()->getId()}/negotiations",
+            json_encode([
+                'type' => 'hotel_response',
+                'negotiationId' => $negotiation->getId(),
+                'status' => $negotiation->getStatus(),
+                'message' => $negotiation->getHotelResponse(),
+                'respondedAt' => $negotiation->getRespondedAt()->format('Y-m-d H:i'),
+            ])
+        ));        
     }
 
     /**
@@ -208,4 +238,24 @@ class NegotiationService
             $this->hub->publish($update);
         }
     }
+
+    public function respondManually(Negotiation $negotiation, string $action, ?float $counterOffer = null): void
+    {
+        match ($action) {
+            'accept' => $this->acceptNegotiation($negotiation),
+            'reject' => $this->rejectNegotiation($negotiation),
+            'counter' => $this->makeCounterOffer($negotiation, $counterOffer),
+            default => throw new \InvalidArgumentException('Action inconnue'),
+        };
+        $this->hub->publish(new Update(
+            "hotel/{$negotiation->getRoomType()->getHotel()->getUser()->getId()}/negotiations",
+            json_encode([
+                'type' => 'hotel_response',
+                'negotiationId' => $negotiation->getId(),
+                'status' => $negotiation->getStatus(),
+                'message' => $negotiation->getHotelResponse(),
+                'respondedAt' => $negotiation->getRespondedAt()->format('Y-m-d H:i'),
+            ])
+        ));        
+    }   
 }

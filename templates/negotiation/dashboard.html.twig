@@ -1,0 +1,166 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes négociations - MatchRoom{% endblock %}
+
+{% block body %}
+<div class="min-h-screen flex flex-col">
+    {% include 'partials/_navbar.html.twig' %}
+
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-2xl font-serif font-bold mb-6 text-primary-700">Mes négociations</h1>
+
+        <!-- Tabs -->
+        <div class="flex space-x-4 mb-6">
+            <button class="tab-button bg-primary-700 text-white px-4 py-2 rounded" data-tab="pending">En attente</button>
+            <button class="tab-button bg-gray-200 text-primary-700 px-4 py-2 rounded" data-tab="accepted">Acceptées</button>
+            <button class="tab-button bg-gray-200 text-primary-700 px-4 py-2 rounded" data-tab="rejected">Refusées</button>
+            <button class="tab-button bg-gray-200 text-primary-700 px-4 py-2 rounded" data-tab="counter_offer">Contres Offres</button>
+        </div>
+
+        {% for status, negotiations in grouped %}
+            <div id="tab-{{ status }}" class="tab-content {% if status != 'pending' %}hidden{% endif %}">
+                {% if negotiations is empty %}
+                    <p class="text-gray-500 italic">Aucune négociation dans cette section.</p>
+                {% else %}
+                    <div class="grid md:grid-cols-2 gap-6">
+                        {% for negotiation in negotiations %}
+                            <div class="negotiation-card bg-white border border-primary-100 rounded-lg shadow-sm p-6"
+                                 data-negotiation-id="{{ negotiation.id }}">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div>
+                                        <h2 class="font-serif font-bold text-primary-700 text-lg">{{ negotiation.roomType.hotel.name }}</h2>
+                                        <p class="text-sm text-primary-500">{{ negotiation.roomType.hotel.location ?? 'Lieu inconnu' }}</p>
+                                    </div>
+                                    <span class="text-yellow-500 font-bold text-sm">⭐ {{ negotiation.roomType.hotel.rating ?? '4.7' }}</span>
+                                </div>
+
+                                <p class="text-sm text-gray-600 mb-2">
+                                    <strong>Vous avez proposé</strong> {{ negotiation.proposedPrice }}€
+                                    {% if status == 'counter_offer' %}
+                                        , <strong>l'hôtel vous propose</strong> <span class="font-semibold">{{ negotiation.hotelResponse }}</span>
+                                    {% endif %}
+                                </p>
+
+                                <p class="text-sm text-gray-500 mb-2">
+                                    Du {{ negotiation.startDate|date('d/m/Y') }} au {{ negotiation.endDate|date('d/m/Y') }}
+                                </p>
+
+                                {% if status == 'counter_offer' %}
+                                    <div class="mt-4 flex gap-4">
+                                        <button
+                                            class="btn-respond bg-primary-700 text-white px-4 py-2 rounded hover:bg-primary-800"
+                                            data-action="accept"
+                                            data-id="{{ negotiation.id }}"
+                                        >
+                                            Accepter la contre-offre
+                                        </button>
+                                        <button
+                                            class="btn-respond bg-gray-300 text-primary-700 px-4 py-2 rounded hover:bg-gray-400"
+                                            data-action="reject"
+                                            data-id="{{ negotiation.id }}"
+                                        >
+                                            Refuser
+                                        </button>
+                                    </div>
+                                {% else %}
+                                    <p class="mt-4 text-sm text-primary-600 italic negotiation-status">Statut : {{ status|capitalize }}</p>
+                                {% endif %}
+
+                                {% if negotiation.respondedAt %}
+                                    <p class="text-xs text-primary-400 mt-2 negotiation-message">
+                                        Réponse le {{ negotiation.respondedAt|date('d/m/Y H:i') }}
+                                    </p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Onglets par statut
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tab = btn.dataset.tab;
+            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.add('hidden'));
+            document.querySelectorAll('.tab-button').forEach(b => {
+                b.classList.remove('bg-primary-700', 'text-white');
+                b.classList.add('bg-gray-200', 'text-primary-700');
+            });
+            document.getElementById('tab-' + tab).classList.remove('hidden');
+            btn.classList.add('bg-primary-700', 'text-white');
+        });
+    });
+
+    // --- Mercure temps réel
+    const url = new URL('/.well-known/mercure', window.location.origin);
+    url.searchParams.append('topic', 'user/{{ app.user.id }}/negotiations');
+    const eventSource = new EventSource(url);
+
+    eventSource.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        console.log("🔔 Mercure update :", data);
+
+        showToast("📬 Mise à jour en temps réel reçue !");
+        setTimeout(() => location.reload(), 1000); // rechargement doux (optionnel, ou remplacer par maj DOM directe)
+    };
+
+    eventSource.onerror = () => {
+        console.warn('Mercure : erreur de connexion');
+    };
+
+    // --- Actions AJAX sans rechargement
+    document.querySelectorAll('.btn-respond').forEach(button => {
+        button.addEventListener('click', async () => {
+            const negotiationId = button.dataset.id;
+            const action = button.dataset.action;
+
+            try {
+                const response = await fetch(`/negotiation/respond/${negotiationId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: new URLSearchParams({
+                        action: action
+                    })
+                });
+
+                if (!response.ok) throw new Error("Échec du traitement");
+
+                const result = await response.json();
+                console.log("✅ Reçu :", result);
+
+                showToast(`✔️ ${result.message}`);
+                setTimeout(() => location.reload(), 800); // rechargement léger après succès
+            } catch (e) {
+                showToast("❌ Erreur lors de la réponse.");
+                console.error(e);
+            }
+        });
+    });
+
+    // --- Affichage d'un toast
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'fixed top-4 right-4 bg-primary-700 text-white px-4 py-2 rounded shadow z-50 transition-opacity';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 400);
+        }, 3000);
+    }
+});
+</script>
+{% endblock %}
