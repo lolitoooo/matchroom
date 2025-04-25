@@ -139,7 +139,10 @@
                                         {% for category, items in amenities_categories %}
                                             {% set categoryKey = 'amenities_' ~ category|replace({' ': '_', 'é': 'e', 'è': 'e', 'à': 'a', 'ê': 'e', 'î': 'i', 'ô': 'o', 'û': 'u', 'ç': 'c', "'": '_'})|lower %}
                                             <div class="bg-primary-50 p-4 rounded-lg">
-                                                <h3 class="font-medium text-primary-700 text-lg mb-3">{{ category }}</h3>
+                                                <div class="flex justify-between items-center mb-3">
+                                                    <h3 class="font-medium text-primary-700 text-lg">{{ category }}</h3>
+                                                    <button type="button" class="select-all-btn bg-primary-500 hover:bg-primary-600 text-white text-xs px-2 py-1 rounded" data-category="{{ categoryKey }}">Tout sélectionner</button>
+                                                </div>
                                                 <div class="space-y-2">
                                                     {% for choice in amenitiesForm[categoryKey] %}
                                                         <div class="flex items-start">
@@ -162,7 +165,7 @@
                                 Annuler
                             </a>
                             <button type="submit" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
-                                Enregistrer les modifications
+                                Enregistrer et retourner à la liste
                             </button>
                         </div>
                     </div>
@@ -171,4 +174,58 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gérer les boutons "Tout sélectionner"
+            const selectAllButtons = document.querySelectorAll('.select-all-btn');
+            
+            // Fonction pour mettre à jour le texte des boutons en fonction de l'état des cases
+            function updateButtonText(category) {
+                const button = document.querySelector(`.select-all-btn[data-category="${category}"]`);
+                const checkboxes = document.querySelectorAll(`input[name^="${category}["]`);
+                const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+                
+                if (button) {
+                    button.textContent = allChecked ? 'Tout désélectionner' : 'Tout sélectionner';
+                }
+            }
+            
+            // Gérer le clic sur les boutons "Tout sélectionner"
+            selectAllButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const category = this.getAttribute('data-category');
+                    const checkboxes = document.querySelectorAll(`input[name^="${category}["]`);
+                    
+                    // Vérifier si toutes les cases sont déjà cochées
+                    const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+                    
+                    // Cocher ou décocher toutes les cases
+                    checkboxes.forEach(checkbox => {
+                        checkbox.checked = !allChecked;
+                    });
+                    
+                    // Mettre à jour le texte du bouton
+                    updateButtonText(category);
+                });
+            });
+            
+            // Gérer les changements sur les cases à cocher individuelles
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    // Trouver la catégorie de cette case
+                    const name = this.getAttribute('name');
+                    if (name) {
+                        const categoryMatch = name.match(/^(amenities_[^\[]+)/); 
+                        if (categoryMatch && categoryMatch[1]) {
+                            updateButtonText(categoryMatch[1]);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
 {% endblock %}

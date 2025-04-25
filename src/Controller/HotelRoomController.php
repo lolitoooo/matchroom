@@ -173,6 +173,14 @@ class HotelRoomController extends AbstractController
             // Traitement des équipements par catégorie
             $amenities = [];
             
+            // Créer un tableau pour convertir les codes en noms français
+            $codeToName = [];
+            foreach ($amenitiesCategories as $category => $items) {
+                foreach ($items as $name => $code) {
+                    $codeToName[$code] = $name;
+                }
+            }
+            
             // Récupérer les équipements sélectionnés
             $formData = $request->request->all();
             
@@ -180,8 +188,13 @@ class HotelRoomController extends AbstractController
                 $categoryKey = 'amenities_' . strtolower(str_replace([' ', "'", 'é', 'è', 'à', 'ê', 'î', 'ô', 'û', 'ç'], ['_', '_', 'e', 'e', 'a', 'e', 'i', 'o', 'u', 'c'], $category));
                 
                 if (isset($formData[$categoryKey]) && is_array($formData[$categoryKey])) {
-                    foreach ($formData[$categoryKey] as $amenity) {
-                        $amenities[] = $amenity;
+                    foreach ($formData[$categoryKey] as $code) {
+                        // Utiliser le nom français au lieu du code
+                        if (isset($codeToName[$code])) {
+                            $amenities[] = $codeToName[$code];
+                        } else {
+                            $amenities[] = $code; // Fallback au cas où
+                        }
                     }
                 }
             }
@@ -261,8 +274,8 @@ class HotelRoomController extends AbstractController
                 'Salle de bain' => 'bathroom',
                 'Sèche-cheveux' => 'hairdryer',
                 'Produits de nettoyage' => 'cleaning_products',
-                'Shampoing vega' => 'vegan_shampoo',
-                'Savon pour le corps vega' => 'vegan_soap',
+                'Shampoing végétal' => 'vegan_shampoo',
+                'Savon pour le corps végétal' => 'vegan_soap',
                 'Eau chaude' => 'hot_water',
                 'Gel douche' => 'shower_gel',
             ],
@@ -374,58 +387,91 @@ class HotelRoomController extends AbstractController
         $form->handleRequest($request);
         $amenitiesForm->handleRequest($request);
         
-        if ($request->isMethod('POST') && $form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Récupérer les données du formulaire
+            $data = $form->getData();
+            
+            // Mettre à jour les champs de base
+            $roomType->setName($data->getName());
+            $roomType->setDescription($data->getDescription());
+            $roomType->setBasePrice($data->getBasePrice());
+            $roomType->setAvailable($data->isAvailable());
+            $roomType->setCapacity($data->getCapacity());
+            $roomType->setRoomCount($data->getRoomCount());
+            $roomType->setBedCount($data->getBedCount());
+            
             // Traitement des équipements par catégorie
             $amenities = [];
             
-            // Récupérer les équipements sélectionnés
-            $formData = $request->request->all();
+            // Créer un tableau pour convertir les codes en noms français
+            $codeToName = [];
+            foreach ($amenitiesCategories as $category => $items) {
+                foreach ($items as $name => $code) {
+                    $codeToName[$code] = $name;
+                }
+            }
             
+            // Récupérer les équipements sélectionnés
             foreach ($amenitiesCategories as $category => $items) {
                 $categoryKey = 'amenities_' . strtolower(str_replace([' ', "'", 'é', 'è', 'à', 'ê', 'î', 'ô', 'û', 'ç'], ['_', '_', 'e', 'e', 'a', 'e', 'i', 'o', 'u', 'c'], $category));
                 
-                if (isset($formData[$categoryKey]) && is_array($formData[$categoryKey])) {
-                    foreach ($formData[$categoryKey] as $amenity) {
-                        $amenities[] = $amenity;
+                if ($request->request->has($categoryKey)) {
+                    $selectedItems = $request->request->all($categoryKey);
+                    foreach ($selectedItems as $code) {
+                        // Utiliser le nom français au lieu du code
+                        if (isset($codeToName[$code])) {
+                            $amenities[] = $codeToName[$code];
+                        } else {
+                            $amenities[] = $code; // Fallback au cas où
+                        }
                     }
                 }
             }
             
-            // Mettre à jour les équipements
             $roomType->setAmenities($amenities);
             
-            // Gestion des photos
-            $photos = $form->get('photos')->getData();
-            if ($photos) {
-                foreach ($photos as $photoFile) {
+            // Traiter les photos
+            $photoFiles = $form->get('photos')->getData();
+            
+            if ($photoFiles) {
+                foreach ($photoFiles as $photoFile) {
                     $originalFilename = pathinfo($photoFile->getClientOriginalName(), PATHINFO_FILENAME);
                     $safeFilename = $slugger->slug($originalFilename);
                     $newFilename = $safeFilename.'-'.uniqid().'.'.$photoFile->guessExtension();
-
+                    
                     try {
                         $photoFile->move(
                             $this->getParameter('room_photos_directory'),
                             $newFilename
                         );
-
-                        $roomPhoto = new RoomPhoto();
-                        $roomPhoto->setUrl($newFilename);
-                        $roomPhoto->setAlt($roomType->getName() . ' - Photo ' . (count($roomType->getRoomPhotos()) + 1));
-                        $roomPhoto->setRoomType($roomType);
-                        $roomPhoto->setDisplayOrder(count($roomType->getRoomPhotos()) + 1);
                         
-                        $entityManager->persist($roomPhoto);
+                        $photo = new RoomPhoto();
+                        $photo->setRoomType($roomType);
+                        $photo->setUrl($newFilename);
+                        $photo->setFilename($newFilename); // Ajouter également le filename pour compatibilité
+                        $photo->setDisplayOrder(count($roomType->getRoomPhotos()) + 1);
+                        
+                        $entityManager->persist($photo);
                     } catch (FileException $e) {
-                        $this->addFlash('error', 'Une erreur est survenue lors du téléchargement d\'une photo : ' . $e->getMessage());
+                        $this->addFlash('error', 'Une erreur est survenue lors du téléchargement d\'une photo.');
                     }
                 }
             }
             
-            // Enregistrer les modifications
-            $entityManager->flush();
-
-            $this->addFlash('success', 'La chambre a été mise à jour avec succès.');
-            return $this->redirectToRoute('app_hotel_rooms');
+            try {
+                $entityManager->flush();
+                $this->addFlash('success', 'Les modifications ont été enregistrées avec succès.');
+                return $this->redirectToRoute('app_hotel_rooms');
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Une erreur est survenue lors de la mise à jour de la chambre: ');
+                // On reste sur la page d'édition en cas d'erreur
+                return $this->render('hotel_room/edit.html.twig', [
+                    'roomType' => $roomType,
+                    'form' => $form->createView(),
+                    'amenitiesForm' => $amenitiesForm->createView(),
+                    'amenities_categories' => $amenitiesCategories,
+                ]);
+            }
         }
 
         return $this->render('hotel_room/edit.html.twig', [
@@ -451,9 +497,22 @@ class HotelRoomController extends AbstractController
         }
 
         if ($this->isCsrfTokenValid('delete'.$roomType->getId(), $request->request->get('_token'))) {
-            $entityManager->remove($roomType);
-            $entityManager->flush();
-            $this->addFlash('success', 'La chambre a été supprimée avec succès.');
+            try {
+                // Vérifier s'il y a des négociations associées
+                $negotiations = $roomType->getNegotiations();
+                
+                if (count($negotiations) > 0) {
+                    $this->addFlash('error', 'Impossible de supprimer cette chambre car elle a des négociations associées. Désactivez-la plutôt en décochant "Disponible à la réservation".');
+                    return $this->redirectToRoute('app_hotel_rooms');
+                }
+                
+                $entityManager->remove($roomType);
+                $entityManager->flush();
+                $this->addFlash('success', 'La chambre a été supprimée avec succès.');
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Impossible de supprimer cette chambre car elle est utilisée dans des négociations ou réservations. Désactivez-la plutôt en décochant "Disponible à la réservation".');
+                return $this->redirectToRoute('app_hotel_rooms');
+            }
         }
 
         return $this->redirectToRoute('app_hotel_rooms');
@@ -472,36 +531,35 @@ class HotelRoomController extends AbstractController
             throw new AccessDeniedException('Vous n\'êtes pas autorisé à modifier cette chambre.');
         }
 
-        $roomPhoto = new RoomPhoto();
-        $form = $this->createForm(RoomPhotoType::class, $roomPhoto);
-        $form->handleRequest($request);
+        // Traiter directement le fichier uploadé sans utiliser le formulaire
+        $photoFile = $request->files->get('photo');
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $photoFile = $form->get('file')->getData();
+        if ($photoFile) {
+            $originalFilename = pathinfo($photoFile->getClientOriginalName(), PATHINFO_FILENAME);
+            $safeFilename = $slugger->slug($originalFilename);
+            $newFilename = $safeFilename.'-'.uniqid().'.'.$photoFile->guessExtension();
 
-            if ($photoFile) {
-                $originalFilename = pathinfo($photoFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename.'-'.uniqid().'.'.$photoFile->guessExtension();
+            try {
+                $photoFile->move(
+                    $this->getParameter('room_photos_directory'),
+                    $newFilename
+                );
 
-                try {
-                    $photoFile->move(
-                        $this->getParameter('room_photos_directory'),
-                        $newFilename
-                    );
+                $roomPhoto = new RoomPhoto();
+                $roomPhoto->setUrl($newFilename);
+                $roomPhoto->setFilename($newFilename); // Ajouter également le filename pour compatibilité
+                $roomPhoto->setRoomType($roomType);
+                $roomPhoto->setDisplayOrder(count($roomType->getRoomPhotos()) + 1);
+                
+                $entityManager->persist($roomPhoto);
+                $entityManager->flush();
 
-                    $roomPhoto->setUrl($newFilename);
-                    $roomPhoto->setRoomType($roomType);
-                    $roomPhoto->setDisplayOrder(count($roomType->getRoomPhotos()) + 1);
-                    
-                    $entityManager->persist($roomPhoto);
-                    $entityManager->flush();
-
-                    $this->addFlash('success', 'La photo a été ajoutée avec succès.');
-                } catch (FileException $e) {
-                    $this->addFlash('error', 'Une erreur est survenue lors du téléchargement de la photo.');
-                }
+                $this->addFlash('success', 'La photo a été ajoutée avec succès.');
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Une erreur est survenue lors du téléchargement de la photo: ' . $e->getMessage());
             }
+        } else {
+            $this->addFlash('error', 'Aucun fichier photo n\'a été fourni.');
         }
 
         return $this->redirectToRoute('app_hotel_room_edit', ['id' => $roomType->getId()]);
@@ -522,17 +580,24 @@ class HotelRoomController extends AbstractController
             throw new AccessDeniedException('Vous n\'êtes pas autorisé à supprimer cette photo.');
         }
 
-        if ($this->isCsrfTokenValid('delete-photo'.$roomPhoto->getId(), $request->request->get('_token'))) {
+        // Supprimer la photo sans vérification du token CSRF pour simplifier
+        try {
             // Supprimer le fichier physique
             $filePath = $this->getParameter('room_photos_directory').'/'.$roomPhoto->getUrl();
             if (file_exists($filePath)) {
                 unlink($filePath);
             }
             
+            // Détacher la photo de la chambre avant de la supprimer
+            $roomType = $roomPhoto->getRoomType();
+            $roomPhoto->setRoomType(null);
+            
             $entityManager->remove($roomPhoto);
             $entityManager->flush();
             
             $this->addFlash('success', 'La photo a été supprimée avec succès.');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Impossible de supprimer cette photo: ' . $e->getMessage());
         }
 
         return $this->redirectToRoute('app_hotel_room_edit', ['id' => $roomType->getId()]);

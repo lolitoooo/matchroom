@@ -77,7 +77,7 @@
                                     <div class="swiper-wrapper">
                                         {% for photo in roomType.roomPhotos %}
                                             <div class="swiper-slide">
-                                                <img src="{{ asset('uploads/room_photos/' ~ photo.filename) }}" 
+                                                <img src="{{ asset('uploads/room_photos/' ~ (photo.filename|default(photo.url))) }}" 
                                                     alt="{{ roomType.name }}" 
                                                     class="w-full h-full object-cover">
                                             </div>
@@ -93,7 +93,7 @@
                                     <div class="swiper-wrapper">
                                         {% for photo in roomType.roomPhotos %}
                                             <div class="swiper-slide">
-                                                <img src="{{ asset('uploads/room_photos/' ~ photo.filename) }}" 
+                                                <img src="{{ asset('uploads/room_photos/' ~ (photo.filename|default(photo.url))) }}" 
                                                     alt="{{ roomType.name }}">
                                             </div>
                                         {% endfor %}
