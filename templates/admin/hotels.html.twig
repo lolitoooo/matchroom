@@ -66,10 +66,14 @@
             <div class="hotel-item transform transition-all duration-300 hover:-translate-y-1" data-name="{{ hotel.name|lower }}" data-address="{{ hotel.address|lower }}">
                 <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 h-full">
                     <!-- Image de l'hôtel -->
-                    <div class="h-40 bg-gradient-to-r from-emerald-500 to-emerald-700 relative">
-                        <div class="absolute inset-0 flex items-center justify-center text-white">
-                            <i class="fas fa-hotel text-5xl opacity-30"></i>
-                        </div>
+                    <div class="h-40 bg-gray-100 relative">
+                        {% if hotel.profileImageUrl %}
+                            <img src="{{ asset('uploads/hotel_profiles/' ~ hotel.profileImageUrl) }}" alt="{{ hotel.name }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <div class="absolute inset-0 flex items-center justify-center text-white bg-gradient-to-r from-emerald-500 to-emerald-700">
+                                <i class="fas fa-hotel text-5xl opacity-30"></i>
+                            </div>
+                        {% endif %}
                     </div>
                     
                     <!-- Corps de la carte hôtel -->
@@ -116,17 +120,25 @@
                         {% endif %}
                         
                         <!-- Actions -->
-                        <div class="flex justify-center pt-2 space-x-2">
-                            <a href="{{ path('app_admin_hotel_edit', {'id': hotel.id}) }}" class="inline-flex items-center p-2 border border-gray-300 rounded-full text-emerald-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-300" title="Éditer">
-                                <i class="fas fa-edit"></i>
+                        <div class="flex flex-col space-y-3">
+                            <!-- Bouton Gestion des chambres -->
+                            <a href="{{ path('app_admin_hotel_rooms', {'id': hotel.id}) }}" class="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300">
+                                <i class="fas fa-bed mr-2"></i> Gestion des chambres
                             </a>
                             
-                            <form method="post" action="{{ path('app_admin_hotel_delete', {'id': hotel.id}) }}" class="inline">
-                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ hotel.id) }}">
-                                <button type="submit" class="inline-flex items-center p-2 border border-gray-300 rounded-full text-red-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-300" title="Supprimer" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet hôtel ?');">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
+                            <!-- Autres actions -->
+                            <div class="flex justify-center pt-2 space-x-2">
+                                <a href="{{ path('app_admin_hotel_edit', {'id': hotel.id}) }}" class="inline-flex items-center p-2 border border-gray-300 rounded-full text-emerald-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-300" title="Éditer">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                
+                                <form method="post" action="{{ path('app_admin_hotel_delete', {'id': hotel.id}) }}" class="inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ hotel.id) }}">
+                                    <button type="submit" class="inline-flex items-center p-2 border border-gray-300 rounded-full text-red-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-300" title="Supprimer" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet hôtel ?');">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -191,12 +203,15 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <div class="flex space-x-2">
-                                        <a href="{{ path('app_admin_hotel_edit', {'id': hotel.id}) }}" class="text-emerald-600 hover:text-emerald-900 transition-colors">
+                                        <a href="{{ path('app_admin_hotel_rooms', {'id': hotel.id}) }}" class="text-blue-600 hover:text-blue-900 transition-colors" title="Gestion des chambres">
+                                            <i class="fas fa-bed"></i>
+                                        </a>
+                                        <a href="{{ path('app_admin_hotel_edit', {'id': hotel.id}) }}" class="text-emerald-600 hover:text-emerald-900 transition-colors" title="Éditer">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                         <form method="post" action="{{ path('app_admin_hotel_delete', {'id': hotel.id}) }}" class="inline">
                                             <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ hotel.id) }}">
-                                            <button type="submit" class="text-red-600 hover:text-red-900 transition-colors" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet hôtel ?');">
+                                            <button type="submit" class="text-red-600 hover:text-red-900 transition-colors" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet hôtel ?');" title="Supprimer">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>

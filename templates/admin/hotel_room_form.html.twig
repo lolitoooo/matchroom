@@ -1,0 +1,197 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Administration - {% if roomType.id %}Modifier{% else %}Ajouter{% endif %} une chambre{% endblock %}
+
+{% block body %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- En-tête -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+            <div class="flex items-center mb-2">
+                <a href="{{ path('app_admin_hotel_rooms', {'id': hotel.id}) }}" class="text-emerald-600 hover:text-emerald-700 mr-2">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1 class="text-3xl font-serif font-bold text-gray-800 flex items-center">
+                    <i class="fas fa-bed mr-3 text-emerald-600"></i> 
+                    {% if roomType.id %}
+                        Modifier la chambre
+                    {% else %}
+                        Ajouter une chambre
+                    {% endif %}
+                </h1>
+            </div>
+            <p class="text-gray-600">
+                <i class="fas fa-hotel mr-1 text-emerald-500"></i> {{ hotel.name }}
+            </p>
+        </div>
+    </div>
+    
+    <!-- Messages flash -->
+    {% for message in app.flashes('success') %}
+        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm flex items-center" role="alert">
+            <i class="fas fa-check-circle mr-3 text-green-500"></i>
+            <div>{{ message }}</div>
+            <button type="button" class="ml-auto" onclick="this.parentElement.remove()">
+                <i class="fas fa-times text-green-500 hover:text-green-700"></i>
+            </button>
+        </div>
+    {% endfor %}
+    
+    {% for message in app.flashes('error') %}
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-sm flex items-center" role="alert">
+            <i class="fas fa-exclamation-circle mr-3 text-red-500"></i>
+            <div>{{ message }}</div>
+            <button type="button" class="ml-auto" onclick="this.parentElement.remove()">
+                <i class="fas fa-times text-red-500 hover:text-red-700"></i>
+            </button>
+        </div>
+    {% endfor %}
+    
+    <!-- Formulaire -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-100">
+            <h2 class="text-lg font-medium text-gray-800 flex items-center">
+                <i class="fas fa-edit mr-2 text-emerald-600"></i> 
+                {% if roomType.id %}
+                    Modifier les informations de la chambre
+                {% else %}
+                    Informations de la nouvelle chambre
+                {% endif %}
+            </h2>
+        </div>
+        
+        <div class="p-6">
+            {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Nom -->
+                    <div>
+                        {{ form_label(form.name, 'Nom du type de chambre', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                        {{ form_widget(form.name, {'attr': {'class': 'block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500'}}) }}
+                        {{ form_errors(form.name, {'attr': {'class': 'text-red-500 text-sm mt-1'}}) }}
+                    </div>
+                    
+                    <!-- Prix de base -->
+                    <div>
+                        {{ form_label(form.basePrice, 'Prix par nuit (€)', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                        {{ form_widget(form.basePrice, {'attr': {'class': 'block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500'}}) }}
+                        {{ form_errors(form.basePrice, {'attr': {'class': 'text-red-500 text-sm mt-1'}}) }}
+                    </div>
+                    
+                    <!-- Capacité -->
+                    <div>
+                        {{ form_label(form.capacity, 'Capacité (personnes)', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                        {{ form_widget(form.capacity, {'attr': {'class': 'block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500'}}) }}
+                        {{ form_errors(form.capacity, {'attr': {'class': 'text-red-500 text-sm mt-1'}}) }}
+                    </div>
+                    
+                    <!-- Nombre de lits -->
+                    <div>
+                        {{ form_label(form.bedCount, 'Nombre de lits', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                        {{ form_widget(form.bedCount, {'attr': {'class': 'block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500'}}) }}
+                        {{ form_errors(form.bedCount, {'attr': {'class': 'text-red-500 text-sm mt-1'}}) }}
+                    </div>
+                    
+                    <!-- Nombre de chambres -->
+                    <div>
+                        {{ form_label(form.roomCount, 'Nombre de chambres disponibles', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                        {{ form_widget(form.roomCount, {'attr': {'class': 'block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500'}}) }}
+                        {{ form_errors(form.roomCount, {'attr': {'class': 'text-red-500 text-sm mt-1'}}) }}
+                    </div>
+                    
+                    <!-- Disponibilité -->
+                    <div class="flex items-center">
+                        <div class="flex items-center h-5">
+                            {{ form_widget(form.available, {'attr': {'class': 'h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500'}}) }}
+                        </div>
+                        <div class="ml-3 text-sm">
+                            {{ form_label(form.available, 'Disponible à la réservation', {'label_attr': {'class': 'font-medium text-gray-700'}}) }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Description -->
+                <div>
+                    {{ form_label(form.description, 'Description', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                    {{ form_widget(form.description, {'attr': {'class': 'block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500', 'rows': 4}}) }}
+                    {{ form_errors(form.description, {'attr': {'class': 'text-red-500 text-sm mt-1'}}) }}
+                </div>
+                
+                <!-- Équipements -->
+                <div>
+                    <h3 class="block text-lg font-medium text-gray-700 mb-4">Équipements disponibles</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {% for category, items in form.children|filter(field => field.vars.name starts with 'amenities_') %}
+                            <div class="{{ items.vars.row_attr.class }}">
+                                <h4 class="{{ items.vars.label_attr.class }}">{{ items.vars.label }}</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                    {% for choice in items %}
+                                        <div class="flex items-center">
+                                            <div class="flex items-center h-5">
+                                                {{ form_widget(choice) }}
+                                            </div>
+                                            <div class="ml-3 text-sm">
+                                                {{ form_label(choice, null, {'label_attr': {'class': 'font-medium text-gray-700'}}) }}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Photos -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Photos</label>
+                    
+                    <!-- Photos existantes -->
+                    {% if roomType.id and roomType.roomPhotos|length > 0 %}
+                        <div class="mb-4">
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">Photos actuelles</h4>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                {% for photo in roomType.roomPhotos %}
+                                    <div class="relative group">
+                                        <img src="{{ asset('uploads/room_photos/' ~ photo.url) }}" alt="Photo {{ loop.index }}" class="h-32 w-full object-cover rounded-md">
+                                        <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-md">
+                                            <form method="post" action="{{ path('app_admin_hotel_room_photo_delete', {'id': photo.id}) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete-photo' ~ photo.id) }}">
+                                                <button type="submit" class="text-white bg-red-600 hover:bg-red-700 rounded-full p-2" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette photo ?');">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Ajout de nouvelles photos -->
+                    <div class="mt-2">
+                        {{ form_widget(form.photos, {'attr': {'class': 'block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100'}}) }}
+                        <p class="mt-1 text-sm text-gray-500">Formats acceptés: JPG, PNG, GIF. Taille max: 5 Mo.</p>
+                        {{ form_errors(form.photos, {'attr': {'class': 'text-red-500 text-sm mt-1'}}) }}
+                    </div>
+                </div>
+                
+                <!-- Boutons d'action -->
+                <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                    <a href="{{ path('app_admin_hotel_rooms', {'id': hotel.id}) }}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                        Annuler
+                    </a>
+                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                        {% if roomType.id %}
+                            <i class="fas fa-save mr-2"></i> Enregistrer les modifications
+                        {% else %}
+                            <i class="fas fa-plus mr-2"></i> Ajouter la chambre
+                        {% endif %}
+                    </button>
+                </div>
+                
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+{% endblock %}

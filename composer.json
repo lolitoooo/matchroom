@@ -16,6 +16,7 @@
         "knpuniversity/oauth2-client-bundle": "^2.18",
         "league/oauth2-google": "^4.0",
         "runtime/frankenphp-symfony": "^0.2.0",
+        "stripe/stripe-php": "^17.1",
         "symfony/asset": "7.2.*",
         "symfony/console": "7.2.*",
         "symfony/dotenv": "7.2.*",

@@ -37,6 +37,9 @@ class Hotel
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
+    
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $profileImageUrl = null;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private array $amenities = [];
@@ -143,6 +146,18 @@ class Hotel
     public function setDescription(?string $description): static
     {
         $this->description = $description;
+
+        return $this;
+    }
+    
+    public function getProfileImageUrl(): ?string
+    {
+        return $this->profileImageUrl;
+    }
+
+    public function setProfileImageUrl(?string $profileImageUrl): static
+    {
+        $this->profileImageUrl = $profileImageUrl;
 
         return $this;
     }

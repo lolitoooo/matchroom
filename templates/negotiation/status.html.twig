@@ -2,6 +2,98 @@
 
 {% block title %}Statut de la négociation - MatchRoom{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css" />
+    <style>
+        /* Styles pour le carrousel principal */
+        .main-swiper {
+            width: 100%;
+            height: 300px;
+            border-radius: 0.5rem;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        
+        /* Styles pour le carrousel de vignettes */
+        .thumbs-container {
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        .thumbs-swiper {
+            height: 80px;
+            box-sizing: border-box;
+            padding: 5px 0;
+            width: 100%;
+            max-width: 450px; /* Limite la largeur pour 5 vignettes (80px * 5 + marges) */
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+        .thumbs-swiper .swiper-slide {
+            width: 80px !important; /* Force la largeur */
+            height: 100%;
+            opacity: 0.5;
+            border-radius: 0.25rem;
+            overflow: hidden;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        .thumbs-swiper .swiper-slide-thumb-active {
+            opacity: 1;
+            border: 2px solid #4F46E5;
+        }
+        .swiper-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .main-swiper .swiper-button-next, .main-swiper .swiper-button-prev {
+            color: #4F46E5;
+            background: rgba(255, 255, 255, 0.8);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-top: -20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .thumbs-container .swiper-button-next, .thumbs-container .swiper-button-prev {
+            color: #4F46E5;
+            background: rgba(255, 255, 255, 0.8);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            top: 50%;
+            margin-top: -12px;
+        }
+        .swiper-button-next:hover, .swiper-button-prev:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.1);
+        }
+        .main-swiper .swiper-button-next:after, .main-swiper .swiper-button-prev:after {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .thumbs-container .swiper-button-next:after, .thumbs-container .swiper-button-prev:after {
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .swiper-pagination-bullet {
+            width: 10px;
+            height: 10px;
+            margin: 0 5px;
+        }
+        .swiper-pagination-bullet-active {
+            background-color: #4F46E5;
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
     {% include 'partials/_navbar.html.twig' %}
 
@@ -17,9 +109,40 @@
                     <div class="flex flex-col md:flex-row gap-6 mb-6">
                         <div class="md:w-1/2">
                             {% if negotiation.roomType.roomPhotos|length > 0 %}
-                                <img src="{{ negotiation.roomType.roomPhotos is defined and negotiation.roomType.roomPhotos|length > 0 ? asset('uploads/room_photos/' ~ negotiation.roomType.roomPhotos[0].filename) : asset('images/placeholder-room.jpg') }}" 
-                                    alt="{{ negotiation.roomType.name }}" 
-                                    class="w-full h-64 object-cover rounded-lg">
+                                <!-- Carrousel principal -->
+                                <div class="main-swiper">
+                                    <div class="swiper-wrapper">
+                                        {% for photo in negotiation.roomType.roomPhotos %}
+                                            <div class="swiper-slide">
+                                                <img src="{{ asset('uploads/room_photos/' ~ (photo.filename|default(photo.url))) }}" 
+                                                    alt="{{ negotiation.roomType.name }}" 
+                                                    class="w-full h-full object-cover"
+                                                    onerror="this.src='{{ asset('images/hotel-placeholder.jpg') }}'">
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="swiper-pagination"></div>
+                                    <div class="swiper-button-next"></div>
+                                    <div class="swiper-button-prev"></div>
+                                </div>
+                                
+                                <!-- Carrousel de vignettes -->
+                                <div class="thumbs-container">
+                                    <div class="thumbs-swiper">
+                                        <div class="swiper-wrapper">
+                                            {% for photo in negotiation.roomType.roomPhotos %}
+                                                <div class="swiper-slide">
+                                                    <img src="{{ asset('uploads/room_photos/' ~ (photo.filename|default(photo.url))) }}" 
+                                                        alt="{{ negotiation.roomType.name }}" 
+                                                        class="w-full h-full object-cover"
+                                                        onerror="this.src='{{ asset('images/hotel-placeholder.jpg') }}'">
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="swiper-button-next thumbs-button-next"></div>
+                                    <div class="swiper-button-prev thumbs-button-prev"></div>
+                                </div>
                             {% else %}
                                 <div class="w-full h-64 bg-primary-100 flex items-center justify-center rounded-lg">
                                     <span class="text-primary-500">Aucune photo disponible</span>
@@ -259,4 +382,60 @@
             </div>
         </div>
     </footer>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialiser le carrousel de vignettes
+            var thumbsSwiper = new Swiper('.thumbs-swiper', {
+                spaceBetween: 10,
+                slidesPerView: 5,
+                slidesPerGroup: 1,
+                loop: false,
+                loopFillGroupWithBlank: false,
+                watchSlidesProgress: true,
+                grabCursor: true,
+                navigation: {
+                    nextEl: '.thumbs-button-next',
+                    prevEl: '.thumbs-button-prev'
+                },
+                breakpoints: {
+                    320: { slidesPerView: 3 },
+                    640: { slidesPerView: 4 },
+                    768: { slidesPerView: 5 }
+                }
+            });
+            
+            // Initialiser le carrousel principal
+            var mainSwiper = new Swiper('.main-swiper', {
+                spaceBetween: 10,
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev'
+                },
+                pagination: {
+                    el: '.swiper-pagination',
+                    clickable: true,
+                    dynamicBullets: true
+                },
+                thumbs: {
+                    swiper: thumbsSwiper
+                },
+                autoplay: {
+                    delay: 5000,
+                    disableOnInteraction: false,
+                    pauseOnMouseEnter: true
+                },
+                loop: true,
+                grabCursor: true,
+                effect: 'fade',
+                fadeEffect: {
+                    crossFade: true
+                }
+            });
+        });
+    </script>
 {% endblock %}

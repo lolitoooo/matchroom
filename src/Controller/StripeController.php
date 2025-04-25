@@ -14,6 +14,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Stripe\Stripe;
 use Stripe\Checkout\Session;
+use Stripe\Exception\ApiErrorException;
 
 #[Route('/stripe')]
 class StripeController extends AbstractController
@@ -23,12 +24,10 @@ class StripeController extends AbstractController
     
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private string $stripeKey,
-        private string $webhookSecret
+        private string $stripeKey
     )
     {
         $this->stripeSecretKey = $stripeKey;
-        $this->stripeWebhookSecret = $webhookSecret;
     }
     
     #[Route('/checkout/{id}', name: 'app_stripe_checkout')]
@@ -48,6 +47,10 @@ class StripeController extends AbstractController
         $nights = $negotiation->getEndDate()->diff($negotiation->getStartDate())->days;
         $totalAmount = $negotiation->getProposedPrice() * $nights;
         
+        // Calcul du montant HT et de la TVA (20%)
+        $amountHT = round($totalAmount / 1.2, 2);
+        $amountTVA = round($totalAmount - $amountHT, 2);
+        
         // Initialiser Stripe
         Stripe::setApiKey($this->stripeSecretKey);
         
@@ -59,7 +62,10 @@ class StripeController extends AbstractController
                     'currency' => 'eur',
                     'product_data' => [
                         'name' => $negotiation->getRoomType()->getName() . ' - ' . $negotiation->getRoomType()->getHotel()->getName(),
-                        'description' => 'Du ' . $negotiation->getStartDate()->format('d/m/Y') . ' au ' . $negotiation->getEndDate()->format('d/m/Y'),
+                        'description' => 'Du ' . $negotiation->getStartDate()->format('d/m/Y') . ' au ' . $negotiation->getEndDate()->format('d/m/Y') . 
+                                     ' - Prix TTC: ' . number_format($totalAmount, 2, ',', ' ') . '€ (HT: ' . 
+                                     number_format($amountHT, 2, ',', ' ') . '€, TVA 20%: ' . 
+                                     number_format($amountTVA, 2, ',', ' ') . '€)',
                     ],
                     'unit_amount' => (int)($totalAmount * 100), // Montant en centimes
                 ],
@@ -84,10 +90,16 @@ class StripeController extends AbstractController
         $booking->setEndDate($negotiation->getEndDate());
         $booking->setStatus(Booking::STATUS_CONFIRMED);
         
+        // Calcul du montant total, HT et TVA
+        $nights = $negotiation->getEndDate()->diff($negotiation->getStartDate())->days;
+        $totalAmount = $negotiation->getProposedPrice() * $nights;
+        $amountHT = round($totalAmount / 1.2, 2);
+        $amountTVA = round($totalAmount - $amountHT, 2);
+        
         // Créer un paiement
         $payment = new Payment();
         $payment->setBooking($booking);
-        $payment->setAmount($negotiation->getProposedPrice());
+        $payment->setAmount($totalAmount);
         $payment->setStatus('completed');
         $payment->setPaymentMethod('stripe');
         $payment->setCreatedAt(new \DateTime());
@@ -115,62 +127,7 @@ class StripeController extends AbstractController
         return $this->redirectToRoute('app_negotiation_status', ['id' => $negotiation->getId()]);
     }
     
-    #[Route('/webhook', name: 'app_stripe_webhook')]
-    public function webhook(Request $request, NegotiationRepository $negotiationRepository): Response
-    {
-        Stripe::setApiKey($this->stripeSecretKey);
-        
-        $payload = $request->getContent();
-        $sigHeader = $request->headers->get('Stripe-Signature');
-        $endpointSecret = $this->stripeWebhookSecret;
-        
-        try {
-            $event = \Stripe\Webhook::constructEvent(
-                $payload, $sigHeader, $endpointSecret
-            );
-        } catch(\UnexpectedValueException $e) {
-            // Payload invalide
-            return new Response('', 400);
-        } catch(\Stripe\Exception\SignatureVerificationException $e) {
-            // Signature invalide
-            return new Response('', 400);
-        }
-        
-        // Gérer l'événement
-        switch ($event->type) {
-            case 'checkout.session.completed':
-                $session = $event->data->object;
-                $negotiationId = $session->client_reference_id;
-                
-                $negotiation = $negotiationRepository->find($negotiationId);
-                if ($negotiation) {
-                    // Créer la réservation et le paiement
-                    $booking = new Booking();
-                    $booking->setNegotiation($negotiation);
-                    $booking->setStartDate($negotiation->getStartDate());
-                    $booking->setEndDate($negotiation->getEndDate());
-                    $booking->setStatus(Booking::STATUS_CONFIRMED);
-                    
-                    $payment = new Payment();
-                    $payment->setBooking($booking);
-                    $payment->setAmount($negotiation->getProposedPrice());
-                    $payment->setStatus('completed');
-                    $payment->setPaymentMethod('stripe');
-                    $payment->setCreatedAt(new \DateTime());
-                    $payment->setTransactionId($session->payment_intent);
-                    
-                    // Annuler les réservations en attente qui chevauchent cette période
-                    $this->cancelOverlappingBookings($negotiation->getRoomType()->getId(), $booking->getStartDate(), $booking->getEndDate());
-                    
-                    $this->entityManager->persist($booking);
-                    $this->entityManager->persist($payment);
-                    $this->entityManager->flush();
-                }
-                break;
-        }
-        
-        return new Response('', 200);
-    }
+    // Webhook supprimé pour simplifier l'intégration
     
     /**
      * Annule toutes les réservations en attente qui chevauchent une période donnée

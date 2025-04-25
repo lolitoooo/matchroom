@@ -7,9 +7,11 @@ use App\Entity\User;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\File;
 
 class AdminHotelType extends AbstractType
 {
@@ -72,6 +74,27 @@ class AdminHotelType extends AbstractType
                     return $user->getFirstname() . ' ' . $user->getName() . ' (' . $user->getEmail() . ')';
                 },
                 'required' => false,
+            ])
+            ->add('profileImage', FileType::class, [
+                'label' => 'Image de profil',
+                'mapped' => false,
+                'required' => false,
+                'constraints' => [
+                    new File([
+                        'maxSize' => '2M',
+                        'maxSizeMessage' => 'Le fichier est trop volumineux ({{ size }} {{ suffix }}). La taille maximale autorisée est {{ limit }} {{ suffix }}.',
+                        'mimeTypes' => [
+                            'image/jpeg',
+                            'image/png',
+                        ],
+                        'mimeTypesMessage' => 'Veuillez télécharger une image valide (JPEG ou PNG)',
+                    ])
+                ],
+                'attr' => [
+                    'class' => 'form-control',
+                    'accept' => 'image/jpeg, image/png'
+                ],
+                'help' => 'Formats acceptés : JPG, PNG. Taille maximale : 2 Mo.'
             ])
         ;
     }

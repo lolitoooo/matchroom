@@ -1,0 +1,319 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Administration - Chambres de {{ hotel.name }}{% endblock %}
+
+{% block body %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- En-tête -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+            <div class="flex items-center mb-2">
+                <a href="{{ path('app_admin_hotels') }}" class="text-emerald-600 hover:text-emerald-700 mr-2">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1 class="text-3xl font-serif font-bold text-gray-800 flex items-center">
+                    <i class="fas fa-bed mr-3 text-emerald-600"></i> Chambres de {{ hotel.name }}
+                </h1>
+            </div>
+            <p class="text-gray-600">
+                <i class="fas fa-map-marker-alt mr-1 text-emerald-500"></i> {{ hotel.address }}
+            </p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+            <a href="{{ path('app_admin_hotel_room_new', {'id': hotel.id}) }}" class="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition duration-300 ease-in-out">
+                <i class="fas fa-plus mr-2"></i> Ajouter une chambre
+            </a>
+        </div>
+    </div>
+    
+    <!-- Messages flash -->
+    {% for message in app.flashes('success') %}
+        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm flex items-center" role="alert">
+            <i class="fas fa-check-circle mr-3 text-green-500"></i>
+            <div>{{ message }}</div>
+            <button type="button" class="ml-auto" onclick="this.parentElement.remove()">
+                <i class="fas fa-times text-green-500 hover:text-green-700"></i>
+            </button>
+        </div>
+    {% endfor %}
+    
+    {% for message in app.flashes('error') %}
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-sm flex items-center" role="alert">
+            <i class="fas fa-exclamation-circle mr-3 text-red-500"></i>
+            <div>{{ message }}</div>
+            <button type="button" class="ml-auto" onclick="this.parentElement.remove()">
+                <i class="fas fa-times text-red-500 hover:text-red-700"></i>
+            </button>
+        </div>
+    {% endfor %}
+    
+    <!-- Section de filtres -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 mb-8">
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-100">
+            <h2 class="text-lg font-medium text-gray-800 flex items-center">
+                <i class="fas fa-filter mr-2 text-emerald-600"></i> Filtres et options d'affichage
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="relative flex-grow">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                    <input type="text" id="room-search" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" placeholder="Rechercher une chambre...">
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <span class="text-sm text-gray-600">{{ roomTypes|length }} types de chambres trouvés</span>
+                    <div class="inline-flex rounded-md shadow-sm">
+                        <button type="button" class="inline-flex items-center px-3 py-2 rounded-l-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 active" id="grid-view">
+                            <i class="fas fa-th"></i>
+                        </button>
+                        <button type="button" class="inline-flex items-center px-3 py-2 rounded-r-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500" id="list-view">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Vue en grille (par défaut) -->
+    <div id="grid-view-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for roomType in roomTypes %}
+            <div class="room-item transform transition-all duration-300 hover:-translate-y-1" data-name="{{ roomType.name|lower }}">
+                <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 h-full">
+                    <!-- Image de la chambre -->
+                    <div class="h-48 bg-gray-200 relative">
+                        {% if roomType.roomPhotos|length > 0 %}
+                            <img src="{{ asset('uploads/room_photos/' ~ roomType.roomPhotos[0].url) }}" alt="{{ roomType.name }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <div class="absolute inset-0 flex items-center justify-center text-gray-400">
+                                <i class="fas fa-bed text-5xl opacity-30"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Badge disponibilité -->
+                        <div class="absolute top-2 right-2">
+                            {% if roomType.available %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <i class="fas fa-check-circle mr-1"></i> Disponible
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    <i class="fas fa-times-circle mr-1"></i> Non disponible
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Corps de la carte chambre -->
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ roomType.name }}</h3>
+                        
+                        <div class="flex items-center mb-3 text-sm text-gray-600">
+                            <div class="flex items-center mr-4">
+                                <i class="fas fa-user-friends mr-1 text-emerald-500"></i>
+                                <span>{{ roomType.capacity }} pers.</span>
+                            </div>
+                            <div class="flex items-center mr-4">
+                                <i class="fas fa-bed mr-1 text-emerald-500"></i>
+                                <span>{{ roomType.bedCount }} lit(s)</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-door-open mr-1 text-emerald-500"></i>
+                                <span>{{ roomType.roomCount }} chambre(s)</span>
+                            </div>
+                        </div>
+                        
+                        {% if roomType.description %}
+                            <p class="text-gray-600 mb-4 line-clamp-2">{{ roomType.description }}</p>
+                        {% endif %}
+                        
+                        <!-- Prix -->
+                        <div class="mb-4 flex items-center">
+                            <span class="text-2xl font-bold text-emerald-600">{{ roomType.basePrice|number_format(2, ',', ' ') }} €</span>
+                            <span class="text-sm text-gray-500 ml-1">/nuit</span>
+                        </div>
+                        
+                        <!-- Équipements -->
+                        {% if roomType.amenities|length > 0 %}
+                            <div class="mb-4">
+                                <h4 class="text-sm font-medium text-gray-700 mb-2">Équipements</h4>
+                                <div class="flex flex-wrap gap-1">
+                                    {% for amenity in roomType.amenities %}
+                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                            {{ amenity }}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Actions -->
+                        <div class="flex justify-center pt-2 space-x-2">
+                            <a href="{{ path('app_admin_hotel_room_edit', {'id': roomType.id}) }}" class="inline-flex items-center p-2 border border-gray-300 rounded-full text-emerald-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-300" title="Éditer">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            
+                            <form method="post" action="{{ path('app_admin_hotel_room_delete', {'id': roomType.id}) }}" class="inline">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ roomType.id) }}">
+                                <button type="submit" class="inline-flex items-center p-2 border border-gray-300 rounded-full text-red-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-300" title="Supprimer" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette chambre ?');">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-span-full">
+                <div class="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md">
+                    <div class="flex">
+                        <i class="fas fa-info-circle flex-shrink-0 mr-3"></i>
+                        <span>Aucune chambre trouvée pour cet hôtel. <a href="{{ path('app_admin_hotel_room_new', {'id': hotel.id}) }}" class="underline">Ajouter une chambre</a>.</span>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Vue en liste (masquée par défaut) -->
+    <div id="list-view-container" class="hidden">
+        <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Capacité</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prix</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Disponibilité</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for roomType in roomTypes %}
+                            <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10 bg-gray-200 rounded-md overflow-hidden">
+                                            {% if roomType.roomPhotos|length > 0 %}
+                                                <img src="{{ asset('uploads/room_photos/' ~ roomType.roomPhotos[0].url) }}" alt="{{ roomType.name }}" class="h-10 w-10 object-cover">
+                                            {% else %}
+                                                <div class="h-10 w-10 flex items-center justify-center text-gray-400">
+                                                    <i class="fas fa-bed"></i>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">{{ roomType.name }}</div>
+                                            <div class="text-sm text-gray-500 line-clamp-1">{{ roomType.description }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ roomType.capacity }} personnes</div>
+                                    <div class="text-sm text-gray-500">{{ roomType.bedCount }} lit(s), {{ roomType.roomCount }} chambre(s)</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-emerald-600">{{ roomType.basePrice|number_format(2, ',', ' ') }} €</div>
+                                    <div class="text-xs text-gray-500">par nuit</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if roomType.available %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <i class="fas fa-check-circle mr-1"></i> Disponible
+                                        </span>
+                                    {% else %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            <i class="fas fa-times-circle mr-1"></i> Non disponible
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex space-x-2">
+                                        <a href="{{ path('app_admin_hotel_room_edit', {'id': roomType.id}) }}" class="text-emerald-600 hover:text-emerald-900 transition-colors" title="Éditer">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form method="post" action="{{ path('app_admin_hotel_room_delete', {'id': roomType.id}) }}" class="inline">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ roomType.id) }}">
+                                            <button type="submit" class="text-red-600 hover:text-red-900 transition-colors" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette chambre ?');" title="Supprimer">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                                    <div class="flex justify-center items-center">
+                                        <i class="fas fa-info-circle mr-2"></i> Aucune chambre trouvée pour cet hôtel
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gestion des vues (grille/liste)
+        const gridViewBtn = document.getElementById('grid-view');
+        const listViewBtn = document.getElementById('list-view');
+        const gridViewContainer = document.getElementById('grid-view-container');
+        const listViewContainer = document.getElementById('list-view-container');
+        
+        gridViewBtn.addEventListener('click', function() {
+            gridViewContainer.classList.remove('hidden');
+            listViewContainer.classList.add('hidden');
+            gridViewBtn.classList.add('active', 'bg-gray-100');
+            listViewBtn.classList.remove('active', 'bg-gray-100');
+        });
+        
+        listViewBtn.addEventListener('click', function() {
+            gridViewContainer.classList.add('hidden');
+            listViewContainer.classList.remove('hidden');
+            gridViewBtn.classList.remove('active', 'bg-gray-100');
+            listViewBtn.classList.add('active', 'bg-gray-100');
+        });
+        
+        // Recherche de chambres
+        const searchInput = document.getElementById('room-search');
+        const roomItems = document.querySelectorAll('.room-item');
+        
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            roomItems.forEach(item => {
+                const roomName = item.dataset.name;
+                
+                if (roomName.includes(searchTerm)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+        
+        // Animation d'entrée
+        roomItems.forEach((item, index) => {
+            item.style.opacity = '0';
+            item.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                item.style.opacity = '1';
+                item.style.transform = 'translateY(0)';
+            }, index * 50);
+        });
+    });
+</script>
+{% endblock %}
+
+{% endblock %}

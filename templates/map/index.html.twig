@@ -59,18 +59,44 @@
             color: #3A2E27;
         }
         .hotel-list {
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
             margin-top: 10px;
         }
         .hotel-item {
-            padding: 10px;
+            padding: 15px;
             border-bottom: 1px solid #e2e8f0;
             display: flex;
             align-items: center;
+            transition: all 0.2s;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .hotel-item:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
         }
         .hotel-item:last-child {
             border-bottom: none;
+        }
+        .hotel-item-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-right: 15px;
+            flex-shrink: 0;
+            background-color: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .hotel-item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         .hotel-item-content {
             flex: 1;
@@ -78,10 +104,27 @@
         .hotel-item-name {
             font-weight: bold;
             color: #3A2E27;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
         }
         .hotel-item-address {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: #666;
+            margin-bottom: 8px;
+        }
+        .hotel-item-link {
+            display: inline-block;
+            background-color: #6c63ff;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+        .hotel-item-link:hover {
+            background-color: #5a52d5;
         }
         .map-button {
             background-color: #fff;
@@ -413,10 +456,23 @@
                 filteredHotels.forEach(hotel => {
                     const hotelItem = document.createElement('div');
                     hotelItem.className = 'hotel-item';
+                    
+                    // Préparer l'image de l'hôtel
+                    let imageHtml = '';
+                    if (hotel.profileImageUrl) {
+                        imageHtml = `<img src="/uploads/hotel_profiles/${hotel.profileImageUrl}" alt="${hotel.name}" onerror="this.onerror=null; this.src='/images/hotel-placeholder.jpg';">`;  
+                    } else {
+                        imageHtml = `<i class="fas fa-hotel text-gray-400 text-3xl"></i>`;
+                    }
+                    
                     hotelItem.innerHTML = `
+                        <div class="hotel-item-image">
+                            ${imageHtml}
+                        </div>
                         <div class="hotel-item-content">
                             <div class="hotel-item-name">${hotel.name}</div>
                             <div class="hotel-item-address">${hotel.address}</div>
+                            <a href="/hotel/${hotel.id}" class="hotel-item-link">Voir l'hôtel</a>
                         </div>
                     `;
                     

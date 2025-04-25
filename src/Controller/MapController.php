@@ -34,6 +34,7 @@ class MapController extends AbstractController
                     'description' => $hotel->getDescription(),
                     'latitude' => $hotel->getLatitude(),
                     'longitude' => $hotel->getLongitude(),
+                    'profileImageUrl' => $hotel->getProfileImageUrl(),
                 ];
             }
         }

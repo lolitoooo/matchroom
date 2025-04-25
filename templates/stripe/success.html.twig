@@ -55,11 +55,22 @@
                                 <p class="text-lg font-medium text-gray-900">{{ negotiation.proposedPrice|number_format(2, ',', ' ') }} €</p>
                             </div>
                             
-                            <div class="md:col-span-2">
-                                <h3 class="text-sm font-medium text-gray-500 mb-1">Montant total</h3>
-                                <p class="text-2xl font-bold text-primary-700">
-                                    {{ (negotiation.proposedPrice * negotiation.startDate|date_modify('+1 day')|date_diff(negotiation.endDate).days)|number_format(2, ',', ' ') }} €
-                                </p>
+                            <div class="md:col-span-2 border-t border-gray-200 pt-4 mt-2">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="text-sm font-medium text-gray-500">Montant HT</h3>
+                                    {% set totalAmount = negotiation.proposedPrice * negotiation.startDate|date_modify('+1 day')|date_diff(negotiation.endDate).days %}
+                                    {% set amountHT = (totalAmount / 1.2)|round(2) %}
+                                    <p class="text-base font-medium text-gray-900">{{ amountHT|number_format(2, ',', ' ') }} €</p>
+                                </div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="text-sm font-medium text-gray-500">TVA (20%)</h3>
+                                    {% set amountTVA = totalAmount - amountHT %}
+                                    <p class="text-base font-medium text-gray-900">{{ amountTVA|number_format(2, ',', ' ') }} €</p>
+                                </div>
+                                <div class="flex justify-between items-center pt-2 border-t border-gray-200">
+                                    <h3 class="text-base font-semibold text-gray-700">Montant total TTC</h3>
+                                    <p class="text-2xl font-bold text-primary-700">{{ totalAmount|number_format(2, ',', ' ') }} €</p>
+                                </div>
                             </div>
                         </div>
                     </div>
