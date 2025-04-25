@@ -41,6 +41,7 @@ class AppFixtures extends Fixture
         $hotel = new Hotel();
         $hotel->setName('Hôtel Côte d\'Azur');
         $hotel->setAddress('12 Promenade des Anglais, Nice');
+        $hotel->setCity('Nice');
         $hotel->setLatitude('43.6955');
         $hotel->setLongitude('7.2653');
         $hotel->setDescription('Hôtel 4 étoiles avec vue mer');
@@ -110,14 +111,18 @@ class AppFixtures extends Fixture
         $payment->setStripeId('pi_test_123456789');
         $payment->setAmount('140');
         $payment->setStatus(Payment::STATUS_COMPLETED);
+        $payment->setPaymentMethod('stripe');
         $manager->persist($payment);
 
         // Réservation
         $booking = new Booking();
-        $booking->setNegotiation($nego1);
-        $booking->setPayment($payment);
-        $booking->setStatus('confirmed');
-        $manager->persist($booking);
+    $booking->setNegotiation($nego1);
+    $booking->setPayment($payment);
+    $booking->setStatus('confirmed');
+    $booking->setStartDate($nego1->getStartDate());
+    $booking->setEndDate($nego1->getEndDate());
+    $manager->persist($booking);
+
 
         // Notifications
         foreach ([$client, $hotelier] as $user) {

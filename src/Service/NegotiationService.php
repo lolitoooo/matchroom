@@ -99,7 +99,7 @@ class NegotiationService
         $negotiation->setRespondedAt(new \DateTime());
         
         if ($isAutomatic) {
-            $negotiation->setHotelResponse("Votre offre a été automatiquement acceptée par l'hôtel.");
+            $negotiation->setHotelResponse("Votre offre pour {$negotiation->getRoomType()->getName()} a été acceptée!");
         }
         
         $this->entityManager->flush();
@@ -127,7 +127,7 @@ class NegotiationService
         $negotiation->setRespondedAt(new \DateTime());
         
         if ($isAutomatic) {
-            $negotiation->setHotelResponse("Votre offre a été automatiquement refusée par l'hôtel.");
+            $negotiation->setHotelResponse("Votre offre pour {$negotiation->getRoomType()->getName()} a été refusée.");
         }
         
         $this->entityManager->flush();

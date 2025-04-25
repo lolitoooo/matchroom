@@ -2,6 +2,61 @@
 
 {% block title %}Négociations en attente{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+    <style>
+        /* Styles pour le carrousel principal */
+        .main-swiper {
+            width: 100%;
+            height: 300px;
+            border-radius: 0.5rem;
+            margin-bottom: 10px;
+        }
+        
+        /* Styles pour le carrousel de vignettes */
+        .thumbs-swiper {
+            height: 80px;
+            box-sizing: border-box;
+            padding: 5px 0;
+        }
+        .thumbs-swiper .swiper-slide {
+            width: 80px;
+            height: 100%;
+            opacity: 0.5;
+            border-radius: 0.25rem;
+            overflow: hidden;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        .thumbs-swiper .swiper-slide-thumb-active {
+            opacity: 1;
+            border: 2px solid #4F46E5;
+        }
+        .swiper-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .swiper-button-next, .swiper-button-prev {
+            color: #4F46E5;
+            background: rgba(255, 255, 255, 0.5);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+        }
+        .swiper-button-next:after, .swiper-button-prev:after {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .swiper-pagination-bullet-active {
+            background-color: #4F46E5;
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
 <div class="min-h-screen flex flex-col">
     <!-- Navbar -->
@@ -32,7 +87,6 @@
             <table class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
                 <thead class="bg-primary-600 text-white">
                     <tr>
-                        <th class="py-3 px-4 text-left">Client</th>
                         <th class="py-3 px-4 text-left">Chambre</th>
                         <th class="py-3 px-4 text-left">Hôtel</th>
                         <th class="py-3 px-4 text-left">Dates</th>
@@ -44,7 +98,6 @@
                 <tbody>
                     {% for negotiation in negotiations %}
                         <tr class="border-b hover:bg-gray-50">
-                            <td class="py-3 px-4">{{ negotiation.client.email }}</td>
                             <td class="py-3 px-4">{{ negotiation.roomType.name }}</td>
                             <td class="py-3 px-4">{{ negotiation.roomType.hotel.name }}</td>
                             <td class="py-3 px-4">
@@ -94,4 +147,58 @@
     <!-- Footer -->
     {% include 'partials/_footer.html.twig' %}
 </div>
+<!-- Footer -->
+    <footer class="bg-primary-700 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="font-serif text-xl font-bold mb-4">Match Room</h3>
+                    <p class="text-primary-200">Application de mise en relation entre voyageurs et hôteliers.</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Liens rapides</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ path('app_home') }}" class="text-primary-200 hover:text-white">Accueil</a></li>
+                        <li><a href="{{ path('app_map') }}" class="text-primary-200 hover:text-white">Carte</a></li>
+                        <li><a href="#" class="text-primary-200 hover:text-white">Comment ça marche</a></li>
+                        <li><a href="#" class="text-primary-200 hover:text-white">À propos</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Légal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ path('app_legal_terms') }}" class="text-primary-200 hover:text-white">Conditions d'utilisation</a></li>
+                        <li><a href="{{ path('app_legal_privacy') }}" class="text-primary-200 hover:text-white">Politique de confidentialité</a></li>
+                        <li><a href="{{ path('app_legal_notice') }}" class="text-primary-200 hover:text-white">Mentions légales</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium text-lg mb-4">Contact</h4>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                            </svg>
+                            <a href="mailto:contact@matchroom.com" class="text-primary-200 hover:text-white">contact@matchroom.com</a>
+                        </li>
+                        <li class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12z" clip-rule="evenodd" />
+                                <path fill-rule="evenodd" d="M10 4a1 1 0 100 2 1 1 0 000-2zm0 7a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            <a href="{{ path('app_contact') }}" class="text-primary-200 hover:text-white">Aide & Support</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-12 pt-8 border-t border-primary-600 text-center text-primary-300">
+                <p>&copy; {{ "now"|date("Y") }} MatchRoom. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
 {% endblock %}
