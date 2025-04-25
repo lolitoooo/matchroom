@@ -46,17 +46,21 @@
         
         {% block stylesheets %}{% endblock %}
     </head>
-    <body class="bg-primary-50 text-primary-700 min-h-screen">
-        {% for label, messages in app.flashes %}
-            {% for message in messages %}
-                <div class="flash-{{ label }} bg-{{ label == 'success' ? 'green' : 'red' }}-100 border-l-4 border-{{ label == 'success' ? 'green' : 'red' }}-500 text-{{ label == 'success' ? 'green' : 'red' }}-700 p-4 mb-4">
-                    {{ message }}
-                </div>
+    <body class="bg-primary-50 text-primary-700">
+        <div class="flex flex-col min-h-screen">
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="flash-{{ label }} bg-{{ label == 'success' ? 'green' : 'red' }}-100 border-l-4 border-{{ label == 'success' ? 'green' : 'red' }}-500 text-{{ label == 'success' ? 'green' : 'red' }}-700 p-4 mb-4">
+                        {{ message }}
+                    </div>
+                {% endfor %}
             {% endfor %}
-        {% endfor %}
-        
-        {% block body %}{% endblock %}
-        
-        {% block javascripts %}{% endblock %}
+            
+            <div class="flex-grow">
+                {% block body %}{% endblock %}
+            </div>
+            
+            {% block javascripts %}{% endblock %}
+        </div>
     </body>
 </html>

@@ -20,26 +20,71 @@ class SearchController extends AbstractController
     #[Route('/', name: 'app_search')]
     public function index(Request $request, HotelRepository $hotelRepository, RoomTypeRepository $roomTypeRepository): Response
     {
-        $form = $this->createForm(AdvancedSearchType::class);
+        // Préparer les données initiales pour le formulaire à partir des paramètres de l'URL
+        $defaultData = [];
+        
+        // Récupérer la destination depuis l'URL
+        if ($request->query->has('destination')) {
+            $defaultData['destination'] = $request->query->get('destination');
+        }
+        
+        // Récupérer les dates depuis l'URL
+        if ($request->query->has('startDate')) {
+            try {
+                $startDateStr = $request->query->get('startDate');
+                $defaultData['startDate'] = new \DateTime($startDateStr);
+            } catch (\Exception $e) {
+                // En cas d'erreur, utiliser la date du jour
+                $defaultData['startDate'] = new \DateTime();
+            }
+        }
+        
+        if ($request->query->has('endDate')) {
+            try {
+                $endDateStr = $request->query->get('endDate');
+                $defaultData['endDate'] = new \DateTime($endDateStr);
+            } catch (\Exception $e) {
+                // En cas d'erreur, utiliser la date du lendemain
+                $defaultData['endDate'] = new \DateTime('+1 day');
+            }
+        }
+        
+        // Récupérer le nombre de personnes depuis l'URL
+        if ($request->query->has('persons')) {
+            $defaultData['persons'] = (int)$request->query->get('persons');
+        } else {
+            // Valeur par défaut pour le nombre de personnes
+            $defaultData['persons'] = 1;
+        }
+        
+        // Récupérer le budget depuis l'URL (si présent)
+        if ($request->query->has('budget')) {
+            $defaultData['budget'] = (float)$request->query->get('budget');
+        }
+        
+        // Créer le formulaire avec les données par défaut
+        $form = $this->createForm(AdvancedSearchType::class, $defaultData);
         $form->handleRequest($request);
         
         $results = [];
         
-        // Récupérer les paramètres de recherche, même pour la page d'accueil
-        $data = $form->getData() ?: [];
-        $destination = $data['destination'] ?? $request->query->get('destination');
+        // Récupérer les paramètres de recherche
+        $data = $form->getData() ?: $defaultData;
+        $destination = $data['destination'] ?? null;
         $startDate = $data['startDate'] ?? null;
         $endDate = $data['endDate'] ?? null;
-        $budget = $data['budget'] ?? $request->query->get('budget');
+        $budget = $data['budget'] ?? null;
+        $persons = $data['persons'] ?? null;
         
         // Appliquer les filtres si des paramètres sont présents
-        if ($destination || $startDate || $endDate || $budget) {
+        if ($destination || $startDate || $endDate || $budget || $persons) {
             $results = $roomTypeRepository->findBySearchCriteria(
                 $destination,
                 $startDate,
                 $endDate,
                 null, // Type de chambre retiré
-                $budget
+                $budget,
+                $persons
             );
         } else {
             // Afficher toutes les chambres disponibles par défaut

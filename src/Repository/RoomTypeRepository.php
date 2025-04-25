@@ -59,7 +59,7 @@ class RoomTypeRepository extends ServiceEntityRepository
     /**
      * Recherche avancée de chambres selon plusieurs critères
      */
-    public function findBySearchCriteria(?string $destination = null, ?\DateTimeInterface $startDate = null, ?\DateTimeInterface $endDate = null, ?string $roomType = null, ?float $budget = null): array
+    public function findBySearchCriteria(?string $destination = null, ?\DateTimeInterface $startDate = null, ?\DateTimeInterface $endDate = null, ?string $roomType = null, ?float $budget = null, ?int $persons = null): array
     {
         $qb = $this->createQueryBuilder('r')
             ->innerJoin('r.hotel', 'h')
@@ -82,6 +82,12 @@ class RoomTypeRepository extends ServiceEntityRepository
         if ($budget) {
             $qb->andWhere('r.basePrice <= :budget')
                ->setParameter('budget', $budget);
+        }
+        
+        // Filtre par nombre de personnes
+        if ($persons) {
+            $qb->andWhere('r.capacity >= :persons')
+               ->setParameter('persons', $persons);
         }
         
         // Filtre par disponibilité aux dates spécifiées

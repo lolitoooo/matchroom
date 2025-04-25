@@ -124,4 +124,53 @@ class BookingRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+    
+    /**
+     * Trouve toutes les réservations confirmées pour un type de chambre spécifique
+     * 
+     * @param int $roomTypeId L'ID du type de chambre
+     * @return array Les réservations confirmées pour ce type de chambre
+     */
+    public function findConfirmedBookingsByRoomType(int $roomTypeId): array
+    {
+        return $this->createQueryBuilder('b')
+            ->join('b.negotiation', 'n')
+            ->andWhere('n.roomType = :roomTypeId')
+            ->andWhere('b.status = :status')
+            ->setParameter('roomTypeId', $roomTypeId)
+            ->setParameter('status', Booking::STATUS_CONFIRMED)
+            ->getQuery()
+            ->getResult();
+    }
+    
+    /**
+     * Récupère toutes les dates réservées (confirmées) pour tous les types de chambres
+     * 
+     * @return array Un tableau de toutes les dates réservées au format Y-m-d
+     */
+    public function findAllBookedDates(): array
+    {
+        $bookings = $this->createQueryBuilder('b')
+            ->join('b.negotiation', 'n')
+            ->andWhere('b.status = :status')
+            ->setParameter('status', Booking::STATUS_CONFIRMED)
+            ->getQuery()
+            ->getResult();
+            
+        $bookedDates = [];
+        foreach ($bookings as $booking) {
+            $negotiation = $booking->getNegotiation();
+            $startDate = $negotiation->getStartDate();
+            $endDate = $negotiation->getEndDate();
+            
+            // Générer toutes les dates entre la date de début et la date de fin
+            $currentDate = clone $startDate;
+            while ($currentDate <= $endDate) {
+                $bookedDates[] = $currentDate->format('Y-m-d');
+                $currentDate->modify('+1 day');
+            }
+        }
+        
+        return array_unique($bookedDates);
+    }
 }
